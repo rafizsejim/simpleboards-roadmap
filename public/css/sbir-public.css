@@ -1,0 +1,3988 @@
+/**
+ * SimpleBoards Public Styles
+ */
+
+/* CSS Variables */
+:root {
+    --sbir-background: #ffffff;
+    --sbir-foreground: #0f172a;
+    --sbir-muted: #f8fafc;
+    --sbir-muted-foreground: #64748b;
+    --sbir-border: #e2e8f0;
+    --sbir-primary: #3b82f6;
+    --sbir-primary-hover: #2563eb;
+    --sbir-primary-active: #1d4ed8;
+    --sbir-surface: #ffffff;
+    --sbir-surface-hover: #f1f5f9;
+    --sbir-surface-active: #e2e8f0;
+    --sbir-focus: #60a5fa;
+    --sbir-disabled: #cbd5e1;
+    --sbir-radius: 12px;
+    --sbir-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    /* Vote accent (lavender) for Kanban */
+    --sbir-vote-accent: #8b5cf6;
+    --sbir-vote-bg: #ffffff;
+    --sbir-vote-bg-hover: #f5f3ff;
+    --sbir-vote-bg-active: #ede9fe;
+    --sbir-vote-button-text: #1f2937;
+    --sbir-vote-button-border: #f3f4f6;
+    --sbir-vote-radius: 10px;
+    --sbir-vote-text-size: 12px;
+    --sbir-vote-icon-size: 18px;
+    --sbir-column-width: 390px;
+    --sbir-column-gap: 18px;
+    --sbir-ideas-sidebar-width: 380px;
+    --sbir-kanban-column-bg: #fbfbfd;
+    --sbir-deadline-color: #f59e0b;
+    --sbir-card-bg: #ffffff;
+    --sbir-card-border: #f3f4f6;
+    --sbir-card-hover-border: #e5e7eb;
+    --sbir-card-title-color: #111827;
+    --sbir-card-excerpt-color: #6b7280;
+    --sbir-card-meta-color: #9ca3af;
+    --sbir-modal-panel-bg: #ffffff;
+    --sbir-modal-panel-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    --sbir-drawer-overlay-bg: rgba(15, 23, 42, 0.40);
+    --sbir-drawer-panel-bg: #ffffff;
+    --sbir-drawer-panel-shadow: -10px 0 30px rgba(2, 6, 23, 0.18);
+    --sbir-drawer-surface-bg: #ffffff;
+    --sbir-drawer-divider-color: #f1f5f9;
+    --sbir-comment-toolbar-bg: #f8fafc;
+    --sbir-container-max-width: 1280px;
+}
+
+/* Main board container font stack */
+.sbir-board-container {
+    font-family: var(--sbir-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+    color: var(--sbir-foreground);
+    line-height: 1.6;
+    font-size: var(--sbir-body-size, 14px);
+    width: min(100%, var(--sbir-container-max-width, 1280px));
+    max-width: var(--sbir-container-max-width, 1280px);
+    margin: 0 auto;
+    padding: var(--sbir-container-padding, 24px);
+}
+
+/*
+ * ==========================================================================
+ * THEME COMPATIBILITY ARCHITECTURE
+ * ==========================================================================
+ *
+ * The plugin renders a full UI inside arbitrary WordPress themes. Theme
+ * stylesheets commonly target generic elements (p, a, h1-h6, button) inside
+ * content wrappers (.entry-content, .site-content, etc.), which applies to
+ * our board markup too.
+ *
+ * Strategy (in order):
+ *   1. DESIGN TOKENS        — CSS variables define the visual system.
+ *   2. CONTAINER BASELINE   — .sbir-board-container sets layout + width.
+ *   3. BOUNDARY RESET       — scoped selectors block the properties themes
+ *                             most commonly override (typography, layout,
+ *                             lists, link decoration).
+ *   4. COMPONENT CONTRACTS  — explicit button/input/icon sizing & colors.
+ *   5. INHERIT-THEME MODE   — a single body class (.sbir-inherit-theme)
+ *                             disables the boundary so site owners can
+ *                             opt into theme typography if they prefer.
+ *
+ * Extending safely:
+ *   - Add new theme-compat rules into the matching section below.
+ *   - Do NOT scatter additional !important rules across the rest of the file.
+ *   - If a specific theme still breaks after this, add ONE surgical rule at
+ *     the bottom of this architecture block with a comment explaining why.
+ *
+ * Future upgrade path (not enabled by default):
+ *   Shadow DOM isolation for the drawer can be opt-in via the
+ *   `sbir_theme_compat_mode` filter (returns 'shadow' to enable). Keeps
+ *   SEO intact (content still server-rendered) and requires zero rewrite
+ *   of the CSS below.
+ * ==========================================================================
+ */
+
+/* -------------------- 3.1 BOUNDARY RESET (structural) -------------------- */
+body:not(.sbir-inherit-theme) .sbir-board-container,
+body:not(.sbir-inherit-theme) .sbir-board-container * {
+    box-sizing: border-box;
+}
+/* -------------------- 3.2 BOUNDARY RESET (typography) -------------------- */
+/* Forces plugin font stack on elements themes commonly restyle. */
+body:not(.sbir-inherit-theme) .sbir-board-container,
+body:not(.sbir-inherit-theme) .sbir-board-container h1,
+body:not(.sbir-inherit-theme) .sbir-board-container h2,
+body:not(.sbir-inherit-theme) .sbir-board-container h3,
+body:not(.sbir-inherit-theme) .sbir-board-container h4,
+body:not(.sbir-inherit-theme) .sbir-board-container h5,
+body:not(.sbir-inherit-theme) .sbir-board-container h6,
+body:not(.sbir-inherit-theme) .sbir-board-container p,
+body:not(.sbir-inherit-theme) .sbir-board-container span,
+body:not(.sbir-inherit-theme) .sbir-board-container a,
+body:not(.sbir-inherit-theme) .sbir-board-container button,
+body:not(.sbir-inherit-theme) .sbir-board-container input,
+body:not(.sbir-inherit-theme) .sbir-board-container select,
+body:not(.sbir-inherit-theme) .sbir-board-container textarea,
+body:not(.sbir-inherit-theme) .sbir-board-container label,
+body:not(.sbir-inherit-theme) #sbir-drawer,
+body:not(.sbir-inherit-theme) #sbir-drawer h1,
+body:not(.sbir-inherit-theme) #sbir-drawer h2,
+body:not(.sbir-inherit-theme) #sbir-drawer h3,
+body:not(.sbir-inherit-theme) #sbir-drawer h4,
+body:not(.sbir-inherit-theme) #sbir-drawer h5,
+body:not(.sbir-inherit-theme) #sbir-drawer h6,
+body:not(.sbir-inherit-theme) #sbir-drawer p,
+body:not(.sbir-inherit-theme) #sbir-drawer span,
+body:not(.sbir-inherit-theme) #sbir-drawer a,
+body:not(.sbir-inherit-theme) #sbir-drawer button,
+body:not(.sbir-inherit-theme) #sbir-drawer input,
+body:not(.sbir-inherit-theme) #sbir-drawer select,
+body:not(.sbir-inherit-theme) #sbir-drawer textarea,
+body:not(.sbir-inherit-theme) #sbir-drawer label,
+body:not(.sbir-inherit-theme) #sbir-drawer li,
+body:not(.sbir-inherit-theme) #sbir-drawer div {
+    font-family: var(--sbir-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+}
+
+/* -------------------- 3.3 BOUNDARY RESET (headings/cards) -------------------- */
+/* Prevents vertical/center drift from theme h3/h4 margins/transforms/text-align. */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header--minimal {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 32px;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-head-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header h3,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header .sbir-head-title {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    text-align: left !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-status-dot {
+    flex: 0 0 8px;
+    min-width: 8px;
+    align-self: center;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-header {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-title {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-title .sbir-card-number {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-title .sbir-item-title {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.35 !important;
+    text-align: left !important;
+    text-transform: none !important;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+/* -------------------- 3.4 BOUNDARY RESET (container width) -------------------- */
+body:not(.sbir-inherit-theme) .entry-content > .sbir-board-container,
+body:not(.sbir-inherit-theme) .wp-block-post-content > .sbir-board-container {
+    width: 100% !important;
+    max-width: var(--sbir-container-max-width, 1280px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* -------------------- 3.4b BOUNDARY RESET (custom single template wrapper) -------------------- */
+/*
+ * The plugin's minimal single-sbir-board template renders <main id="sbir-board-main">
+ * directly under <body>. Many themes apply max-width/padding/margin rules to
+ * <main> (e.g. Colibri, Astra, Kadence, GeneratePress). Force our wrapper to
+ * full width so .sbir-board-container can center itself via margin:auto.
+ */
+body.single-sbir_board:not(.sbir-inherit-theme) main#sbir-board-main,
+body.single-sbir_board:not(.sbir-inherit-theme) .sbir-board-main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+body.single-sbir_board:not(.sbir-inherit-theme) main#sbir-board-main > .sbir-board-container {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* -------------------- 3.5 BOUNDARY RESET (theme wrappers) -------------------- */
+/*
+ * Neutralizes narrow content wrappers so the board fills the page width.
+ * Covers: Neve (.nv-*), Astra (.ast-container), Kadence (.content-container,
+ * .content-wrap, .entry-content-wrap, .site-container), OceanWP/GeneratePress
+ * (#primary, #content, .site-content, .content-area), Twenty Twenty-*
+ * (.wp-site-blocks, .is-layout-constrained), and common shared wrappers.
+ */
+body.single-sbir_board:not(.sbir-inherit-theme) .nv-content-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .nv-single-post-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .site-content,
+body.single-sbir_board:not(.sbir-inherit-theme) .content-area,
+body.single-sbir_board:not(.sbir-inherit-theme) .site-main,
+body.single-sbir_board:not(.sbir-inherit-theme) #primary,
+body.single-sbir_board:not(.sbir-inherit-theme) #content,
+body.single-sbir_board:not(.sbir-inherit-theme) #page,
+body.single-sbir_board:not(.sbir-inherit-theme) .site,
+body.single-sbir_board:not(.sbir-inherit-theme) .hfeed.site,
+body.single-sbir_board:not(.sbir-inherit-theme) .ast-container,
+body.single-sbir_board:not(.sbir-inherit-theme) .ast-row,
+body.single-sbir_board:not(.sbir-inherit-theme) .content-container,
+body.single-sbir_board:not(.sbir-inherit-theme) .content-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .entry-content-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .site-container,
+body.single-sbir_board:not(.sbir-inherit-theme) .page-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .inside-article,
+body.single-sbir_board:not(.sbir-inherit-theme) .wp-site-blocks,
+body.single-sbir_board:not(.sbir-inherit-theme) .is-layout-constrained,
+body.single-sbir_board:not(.sbir-inherit-theme) .is-layout-flow {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/*
+ * Also reset common restrictive paddings that shrink usable width on narrow
+ * theme wrappers. Keep the page body flow natural — only apply to direct
+ * board ancestors, not the board container itself.
+ */
+body.single-sbir_board:not(.sbir-inherit-theme) .content-container,
+body.single-sbir_board:not(.sbir-inherit-theme) .content-wrap,
+body.single-sbir_board:not(.sbir-inherit-theme) .entry-content-wrap {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-toolbar,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-toolbar-controls,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filters,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget-list {
+    display: flex !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tabs {
+    display: inline-flex !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget-list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget-link,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-title a,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-open-drawer,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-pagination-page,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-pagination-btn {
+    text-decoration: none !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget-link,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-open-drawer {
+    color: inherit !important;
+}
+
+/* -------------------- 4.1 COMPONENT CONTRACTS (layout sizing) -------------------- */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-content,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-pane,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-pane.active,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-pane > * {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-pane[data-tab="ideas"] .sbir-ideas-layout {
+    width: 100% !important;
+    max-width: none !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab-pane[data-tab="announcement"] {
+    width: 100% !important;
+    max-width: none !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container {
+    font-size: var(--sbir-body-size, 14px) !important;
+    line-height: 1.6 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-tab {
+    font-size: 14px !important;
+    line-height: 1 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-search-input,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
+    min-height: 42px !important;
+    height: 42px !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-submit-idea-btn {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header .sbir-head-title {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-header .sbir-chip {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn {
+    min-width: 30px !important;
+    min-height: 30px !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    flex: 0 0 16px !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container button svg {
+    vertical-align: middle !important;
+}
+
+/* -------------------- 4.2 COMPONENT CONTRACTS (Pro announcements) -------------------- */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcements-wrap,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcements-list,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-item {
+    width: 100% !important;
+    max-width: none !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-title {
+    margin: 0 0 6px !important;
+    font-size: 17px !important;
+    line-height: 1.35 !important;
+    font-weight: 600 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-content,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-content p {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-link {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+/* -------------------- 4.2b COMPONENT CONTRACTS (card title color) -------------------- */
+/*
+ * Ensure the Pro design option "Card Title Color" applies to BOTH roadmap
+ * card titles and ideas list titles. Themes frequently target `.entry-content
+ * a` and `.entry-content h3/h4` with high specificity, which was overriding
+ * the token on idea titles.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-item-title,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-item .sbir-item-title,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-title,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-title a,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-title a:visited,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-title a:hover,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-drawer-title {
+    color: var(--sbir-card-title-color) !important;
+}
+
+/* -------------------- 4.2c COMPONENT CONTRACTS (vote button size lock) -------------------- */
+/*
+ * Vote buttons must render identically across themes. Theme CSS frequently
+ * resets button padding, font-size, or min-height, making the vote element
+ * grow or shrink. Pin a deterministic size and let the Pro design tokens
+ * (--sbir-vote-icon-size, --sbir-vote-text-size) drive the inner content.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-btn {
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 5px 4px !important;
+    margin: 0 !important;
+    border-radius: var(--sbir-vote-radius, 10px) !important;
+    background: var(--sbir-vote-bg) !important;
+    border: 1px solid var(--sbir-vote-button-border) !important;
+    color: var(--sbir-vote-button-text) !important;
+    font-size: var(--sbir-vote-text-size, 12px) !important;
+    line-height: 1.1 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-btn:hover:not(.voted):not(:disabled),
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-btn:hover:not(.voted):not(:disabled) {
+    background: var(--sbir-vote-bg-hover) !important;
+    border-color: var(--sbir-vote-button-hover-border, var(--sbir-card-hover-border)) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-btn.voted,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-btn.voted {
+    background: var(--sbir-vote-bg-active) !important;
+    border-color: var(--sbir-vote-button-active-border, var(--sbir-vote-accent)) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-icon,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-icon {
+    width: var(--sbir-vote-icon-size, 18px) !important;
+    height: var(--sbir-vote-icon-size, 18px) !important;
+    min-width: var(--sbir-vote-icon-size, 18px) !important;
+    min-height: var(--sbir-vote-icon-size, 18px) !important;
+    flex: 0 0 auto !important;
+    color: var(--sbir-vote-accent) !important;
+    margin: 0 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-count,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-vote .sbir-vote-count-num,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-count,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-vote .sbir-vote-count-num {
+    display: inline-block !important;
+    font-size: var(--sbir-vote-text-size, 12px) !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    color: var(--sbir-vote-button-text) !important;
+    min-width: 16px !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* -------------------- 4.2d COMPONENT CONTRACTS (meta colors) -------------------- */
+/*
+ * Card numbers, dates, authors, and comment counts all share the Pro design
+ * token --sbir-card-meta-color. Themes often override generic text/link
+ * colors inside .entry-content, breaking consistency. Force token-backed
+ * colors across all meta elements so they stay visually unified.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-number,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-number,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-date,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-comments,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-author,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-icon {
+    color: var(--sbir-card-meta-color) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-deadline-inline {
+    color: var(--sbir-deadline-color, #f59e0b) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-deadline-inline .sbir-meta-icon {
+    color: var(--sbir-deadline-color, #f59e0b) !important;
+}
+
+/*
+ * Keep all footer meta visually unified: same font-size, weight, and vertical
+ * alignment. Prevents a theme from making one item (e.g. deadline) appear
+ * larger or slightly higher than the others.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-task-footer,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-task-meta-left,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-task-meta-right {
+    align-items: center !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-date,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-comments,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-author,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-deadline-inline {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    /* Pixel-match the line-height to the icon size so flex centers an
+     * equal-height line-box and an icon of the same height. Otherwise the
+     * icon (which fills its 12px box) appears taller than the digit "0"
+     * (which only fills ~9px of a 12px line-box from line-height:1). */
+    line-height: 13px !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-icon {
+    width: 13px !important;
+    height: 13px !important;
+    min-width: 13px !important;
+    min-height: 13px !important;
+    max-width: 13px !important;
+    max-height: 13px !important;
+    flex: 0 0 13px !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+    align-self: center !important;
+}
+/* Preserve the original hide-post-date-on-roadmap-cards behavior. */
+body:not(.sbir-inherit-theme) .sbir-roadmap .sbir-kanban-item .sbir-task-meta-right .sbir-meta-date {
+    display: none !important;
+}
+
+/* -------------------- 4.2e CARD DISPLAY TOGGLES -------------------- */
+/*
+ * Pro design tokens can hide specific card meta fields per board:
+ *   --sbir-card-show-number   (inline-flex | none)
+ *   --sbir-card-show-deadline (inline-flex | none)
+ *   --sbir-card-show-author   (inline-flex | none)
+ * Each defaults to inline-flex when not set (backwards compatible).
+ * Rules apply to cards (roadmap + ideas list) only. Drawer / item single
+ * page meta remains unaffected because the drawer uses different selectors.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-item .sbir-card-number,
+.sbir-board-container .sbir-kanban-item .sbir-card-number,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-item .sbir-idea-number,
+.sbir-board-container .sbir-idea-item .sbir-idea-number {
+    display: var(--sbir-card-show-number, inline-flex) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-item .sbir-meta-deadline-inline,
+.sbir-board-container .sbir-kanban-item .sbir-meta-deadline-inline,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-item .sbir-meta-deadline-inline,
+.sbir-board-container .sbir-idea-item .sbir-meta-deadline-inline {
+    display: var(--sbir-card-show-deadline, inline-flex) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-item .sbir-meta-author,
+.sbir-board-container .sbir-kanban-item .sbir-meta-author,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-item .sbir-meta-author,
+.sbir-board-container .sbir-idea-item .sbir-meta-author {
+    display: var(--sbir-card-show-author, inline-flex) !important;
+}
+
+/* -------------------- 4.3 COMPONENT CONTRACTS (opacity enforcement) -------------------- */
+/*
+ * Some themes fade content inside post wrappers via rules like:
+ *   .entry-content p { opacity: 0.8 }
+ *   article > * { opacity: 0.9 }
+ * or apply opacity/filter to footer/widget areas that our UI inherits. Force
+ * full opacity on plugin text, controls, and surfaces in non-inherit mode.
+ * Legitimate plugin pseudos that use opacity animations (drawer overlay,
+ * keyframes, drag placeholder, autosave dot) are NOT listed here.
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container,
+body:not(.sbir-inherit-theme) .sbir-board-container h1,
+body:not(.sbir-inherit-theme) .sbir-board-container h2,
+body:not(.sbir-inherit-theme) .sbir-board-container h3,
+body:not(.sbir-inherit-theme) .sbir-board-container h4,
+body:not(.sbir-inherit-theme) .sbir-board-container h5,
+body:not(.sbir-inherit-theme) .sbir-board-container h6,
+body:not(.sbir-inherit-theme) .sbir-board-container p,
+body:not(.sbir-inherit-theme) .sbir-board-container span,
+body:not(.sbir-inherit-theme) .sbir-board-container a,
+body:not(.sbir-inherit-theme) .sbir-board-container li,
+body:not(.sbir-inherit-theme) .sbir-board-container button,
+body:not(.sbir-inherit-theme) .sbir-board-container input,
+body:not(.sbir-inherit-theme) .sbir-board-container select,
+body:not(.sbir-inherit-theme) .sbir-board-container textarea,
+body:not(.sbir-inherit-theme) .sbir-board-container label,
+body:not(.sbir-inherit-theme) .sbir-board-container svg,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-deadline-inline,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-date,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-comments,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-meta-author,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-item-excerpt,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-description,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-kanban-item,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-item,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-widget-link,
+body:not(.sbir-inherit-theme) #sbir-drawer,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-drawer-panel,
+body:not(.sbir-inherit-theme) #sbir-drawer p,
+body:not(.sbir-inherit-theme) #sbir-drawer span,
+body:not(.sbir-inherit-theme) #sbir-drawer h1,
+body:not(.sbir-inherit-theme) #sbir-drawer h2,
+body:not(.sbir-inherit-theme) #sbir-drawer h3,
+body:not(.sbir-inherit-theme) #sbir-drawer h4,
+body:not(.sbir-inherit-theme) #sbir-drawer h5,
+body:not(.sbir-inherit-theme) #sbir-drawer h6,
+body:not(.sbir-inherit-theme) #sbir-drawer a,
+body:not(.sbir-inherit-theme) #sbir-drawer li,
+body:not(.sbir-inherit-theme) #sbir-drawer button,
+body:not(.sbir-inherit-theme) #sbir-drawer svg,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-description-content,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-comment-content,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-comment-list {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/* -------------------- 4.3a THEME PSEUDO-ELEMENT NEUTRALIZER -------------------- */
+/*
+ * Some themes (Colibri, older Bootstrap-based themes, etc.) attach global
+ * clearfix rules to generic elements:
+ *   div:before, ul:before, article:before, section:before { content:""; display:table; }
+ *
+ * Inside our flex and grid containers, those injected pseudo-elements become
+ * unexpected flex/grid items, stealing space and breaking right-alignment
+ * (most visibly: the kanban vote button drifting left of the meta row).
+ *
+ * We neutralize them ONLY on known structural wrappers — components that
+ * never define their own ::before/::after (so this won't disable legitimate
+ * plugin pseudos like the underline-tab indicator or compose button icon).
+ */
+body:not(.sbir-inherit-theme) .sbir-board-container :is(
+    .sbir-board-toolbar,
+    .sbir-board-toolbar-controls,
+    .sbir-board-filters,
+    .sbir-tab-content,
+    .sbir-tab-pane,
+    .sbir-roadmap,
+    .sbir-kanban,
+    .sbir-kanban-column,
+    .sbir-kanban-header,
+    .sbir-kanban-head-left,
+    .sbir-kanban-items,
+    .sbir-kanban-item,
+    .sbir-card-header,
+    .sbir-card-title,
+    .sbir-kanban-vote,
+    .sbir-kanban-vote .sbir-vote-btn,
+    .sbir-idea-vote,
+    .sbir-idea-vote .sbir-vote-btn,
+    .sbir-ideas,
+    .sbir-ideas-layout,
+    .sbir-ideas-main,
+    .sbir-ideas-sidebar,
+    .sbir-idea-item,
+    .sbir-idea-content,
+    .sbir-idea-header,
+    .sbir-idea-meta,
+    .sbir-task-footer,
+    .sbir-task-meta-left,
+    .sbir-task-meta-right,
+    .sbir-widget,
+    .sbir-widget-list,
+    .sbir-widget-link,
+    .sbir-widget-link-title,
+    .sbir-widget-link-meta,
+    .sbir-form-actions,
+    .sbir-ideas-pagination
+)::before,
+body:not(.sbir-inherit-theme) .sbir-board-container :is(
+    .sbir-board-toolbar,
+    .sbir-board-toolbar-controls,
+    .sbir-board-filters,
+    .sbir-tab-content,
+    .sbir-tab-pane,
+    .sbir-roadmap,
+    .sbir-kanban,
+    .sbir-kanban-column,
+    .sbir-kanban-header,
+    .sbir-kanban-head-left,
+    .sbir-kanban-items,
+    .sbir-kanban-item,
+    .sbir-card-header,
+    .sbir-card-title,
+    .sbir-kanban-vote,
+    .sbir-kanban-vote .sbir-vote-btn,
+    .sbir-idea-vote,
+    .sbir-idea-vote .sbir-vote-btn,
+    .sbir-ideas,
+    .sbir-ideas-layout,
+    .sbir-ideas-main,
+    .sbir-ideas-sidebar,
+    .sbir-idea-item,
+    .sbir-idea-content,
+    .sbir-idea-header,
+    .sbir-idea-meta,
+    .sbir-task-footer,
+    .sbir-task-meta-left,
+    .sbir-task-meta-right,
+    .sbir-widget,
+    .sbir-widget-list,
+    .sbir-widget-link,
+    .sbir-widget-link-title,
+    .sbir-widget-link-meta,
+    .sbir-form-actions,
+    .sbir-ideas-pagination
+)::after {
+    content: none !important;
+    display: none !important;
+}
+/* Drawer structural wrappers — drawer is rendered outside .sbir-board-container. */
+body:not(.sbir-inherit-theme) #sbir-drawer :is(
+    .sbir-drawer-panel,
+    .sbir-drawer-content,
+    .sbir-drawer-header,
+    .sbir-drawer-header-top,
+    .sbir-drawer-header-main,
+    .sbir-drawer-header-right,
+    .sbir-drawer-badges,
+    .sbir-drawer-body,
+    .sbir-meta-panel,
+    .sbir-meta-grid,
+    .sbir-meta-item,
+    .sbir-description-section,
+    .sbir-description-card,
+    .sbir-discussion-section,
+    .sbir-discussion,
+    .sbir-discussion-header,
+    .sbir-comment-sort,
+    .sbir-comment-form-card,
+    .sbir-comment-form-top,
+    .sbir-comment-input-wrap,
+    .sbir-comment-toolbar,
+    .sbir-toolbar-left,
+    .sbir-toolbar-right,
+    .sbir-comment-list,
+    .sbir-comment-card,
+    .sbir-comment-row,
+    .sbir-comment-main,
+    .sbir-comment-header,
+    .sbir-comment-meta,
+    .sbir-comment-actions
+)::before,
+body:not(.sbir-inherit-theme) #sbir-drawer :is(
+    .sbir-drawer-panel,
+    .sbir-drawer-content,
+    .sbir-drawer-header,
+    .sbir-drawer-header-top,
+    .sbir-drawer-header-main,
+    .sbir-drawer-header-right,
+    .sbir-drawer-badges,
+    .sbir-drawer-body,
+    .sbir-meta-panel,
+    .sbir-meta-grid,
+    .sbir-meta-item,
+    .sbir-description-section,
+    .sbir-description-card,
+    .sbir-discussion-section,
+    .sbir-discussion,
+    .sbir-discussion-header,
+    .sbir-comment-sort,
+    .sbir-comment-form-card,
+    .sbir-comment-form-top,
+    .sbir-comment-input-wrap,
+    .sbir-comment-toolbar,
+    .sbir-toolbar-left,
+    .sbir-toolbar-right,
+    .sbir-comment-list,
+    .sbir-comment-card,
+    .sbir-comment-row,
+    .sbir-comment-main,
+    .sbir-comment-header,
+    .sbir-comment-meta,
+    .sbir-comment-actions
+)::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* -------------------- 4.3 COMPONENT CONTRACTS (description color) -------------------- */
+/* Forces design token across aggressive themes (e.g. Colibri, Twenty Twenty-Four). */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-item-excerpt,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-idea-description,
+body:not(.sbir-inherit-theme) .sbir-board-container #sbir-drawer .sbir-description-content,
+body:not(.sbir-inherit-theme) .sbir-board-container #sbir-drawer .sbir-description-content p,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-content,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbirp-announcement-content p {
+    color: var(--sbir-card-excerpt-color) !important;
+}
+
+/* -------------------- 4.4 COMPONENT CONTRACTS (buttons) -------------------- */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-submit-idea-btn,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-modal-close,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-subscribe-btn,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-subscribe-btn,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    text-transform: none !important;
+    text-decoration: none !important;
+    box-shadow: none;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-submit-idea-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--sbir-primary) !important;
+    border-radius: calc(var(--sbir-radius) - 0.125rem) !important;
+    background: var(--sbir-primary) !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-submit-idea-btn:hover {
+    background: var(--sbir-primary-hover) !important;
+    border-color: var(--sbir-primary-hover) !important;
+    color: #ffffff !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-submit-idea-btn:active {
+    background: var(--sbir-primary-active) !important;
+    border-color: var(--sbir-primary-active) !important;
+    color: #ffffff !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-primary,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-primary,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-primary {
+    background: var(--sbir-primary) !important;
+    border-color: var(--sbir-primary) !important;
+    color: #ffffff !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-primary:hover,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-primary:hover,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-primary:hover {
+    background: var(--sbir-primary-hover) !important;
+    border-color: var(--sbir-primary-hover) !important;
+    color: #ffffff !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-primary:active,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-primary:active,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-primary:active {
+    background: var(--sbir-primary-active) !important;
+    border-color: var(--sbir-primary-active) !important;
+    color: #ffffff !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-secondary,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-secondary,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-secondary {
+    background: var(--sbir-background) !important;
+    border-color: var(--sbir-border) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-secondary:hover,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-secondary:hover,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-secondary:hover {
+    background: var(--sbir-surface-hover) !important;
+    border-color: var(--sbir-card-hover-border) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-btn-secondary:active,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-btn-secondary:active,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-btn-secondary:active {
+    background: var(--sbir-surface-active) !important;
+    border-color: var(--sbir-card-hover-border) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn {
+    background: transparent !important;
+    border-color: var(--sbir-border) !important;
+    color: var(--sbir-muted-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn:hover,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-add-btn:active {
+    background: var(--sbir-muted) !important;
+    border-color: var(--sbir-card-hover-border) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-modal-close {
+    background: var(--sbir-background, #ffffff) !important;
+    border-color: var(--sbir-border) !important;
+    color: var(--sbir-muted-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-modal-close:hover {
+    background: var(--sbir-surface-hover) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-modal-close:active {
+    background: var(--sbir-surface-active) !important;
+    color: var(--sbir-primary) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-subscribe-btn,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-subscribe-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    background: var(--sbir-vote-bg, #ffffff) !important;
+    border-color: var(--sbir-vote-button-border, #f3f4f6) !important;
+    color: var(--sbir-muted-foreground, #64748b) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-subscribe-btn:hover,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-subscribe-btn:hover {
+    background: var(--sbir-vote-bg-hover, #f5f3ff) !important;
+    border-color: var(--sbir-card-hover-border, #e5e7eb) !important;
+    color: var(--sbir-foreground, #0f172a) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-subscribe-btn.is-subscribed,
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-subscribe-btn.is-subscribed {
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #047857 !important;
+}
+/* -------------------- 4.5 COMPONENT CONTRACTS (modal form controls) -------------------- */
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group select,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group textarea,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group input,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group select,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group textarea {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: var(--sbir-background) !important;
+    border: 1px solid var(--sbir-border) !important;
+    border-radius: calc(var(--sbir-radius) - 0.125rem) !important;
+    color: var(--sbir-foreground) !important;
+}
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input,
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group select,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group input,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group select {
+    min-height: 54px !important;
+    padding: 0 14px !important;
+    line-height: 1.2 !important;
+}
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group textarea,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group textarea {
+    min-height: 140px !important;
+    padding: 12px 14px !important;
+}
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input[type="date"] {
+    font-variant-numeric: tabular-nums;
+}
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.9;
+}
+
+/*
+ * ==========================================================================
+ * 5. INHERIT-THEME MODE
+ * ==========================================================================
+ * When the site owner enables "Inherit Theme Styles" in plugin settings, the
+ * body gets .sbir-inherit-theme and the boundary above no longer matches.
+ * Design tokens fall back to `inherit` so theme typography takes over while
+ * plugin layout stays intact.
+ * ==========================================================================
+ */
+.sbir-inherit-theme {
+    --sbir-font-family: inherit;
+    --sbir-foreground: currentColor;
+}
+
+/* Hide theme entry header/meta on board pages */
+body.single-sbir_board .entry-header,
+body.single-sbir_board .entry-meta,
+body.single-sbir_board .entry-title,
+body.single-sbir_board .byline,
+body.single-sbir_board .posted-on,
+body.single-sbir_board .author,
+body.single-sbir_board .post-meta,
+body.single-sbir_board header.entry-header {
+    display: none !important;
+}
+
+/* Normalize theme content spacing on board pages */
+body.single-sbir_board .entry-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+/* Astra theme: remove container width/padding on board pages */
+body.single-sbir_board .ast-container {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Board header tabs + search */
+.sbir-board-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    background: var(--sbir-surface);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    box-shadow: var(--sbir-shadow);
+}
+
+.sbir-board-header {
+    margin: 0 0 16px;
+    padding: 4px 0 2px;
+}
+
+.sbir-board-title {
+    margin: 0;
+    font-size: var(--sbir-title-size, 34px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: var(--sbir-foreground);
+}
+
+.sbir-board-description {
+    margin: 8px 0 0;
+    max-width: 70ch;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--sbir-muted-foreground);
+}
+
+.sbir-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: max-content;
+}
+
+.sbir-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: var(--sbir-muted-foreground);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.sbir-tab:hover {
+    color: var(--sbir-foreground);
+    background: var(--sbir-muted);
+}
+
+.sbir-tab.active {
+    background: var(--sbir-muted);
+    color: var(--sbir-foreground);
+    border-color: var(--sbir-border);
+}
+
+.sbir-tab:focus-visible {
+    outline: 2px solid var(--sbir-focus);
+    outline-offset: 2px;
+}
+
+/* Nav style: Minimal — no toolbar container, plain text tabs with a subtle active pill. */
+.sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-board-toolbar {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0 0 8px;
+    margin-bottom: 16px;
+    border-radius: 0;
+}
+.sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-tabs { gap: 4px; }
+.sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-tab {
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border-color: transparent;
+    font-weight: 500;
+    color: var(--sbir-muted-foreground);
+}
+.sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-tab:hover {
+    background: var(--sbir-muted);
+    color: var(--sbir-foreground);
+}
+.sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-tab.active {
+    background: var(--sbir-muted);
+    border-color: transparent;
+    color: var(--sbir-foreground);
+    font-weight: 600;
+}
+
+/* Nav style: Underline — no fill, active gets a crisp bottom indicator. */
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-board-toolbar {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--sbir-border);
+    box-shadow: none;
+    padding: 0 0 0;
+    margin-bottom: 16px;
+    border-radius: 0;
+}
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tabs { gap: 4px; }
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab {
+    position: relative;
+    min-height: 40px;
+    padding: 10px 4px;
+    margin: 0 8px;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    color: var(--sbir-muted-foreground);
+}
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab:first-child { margin-left: 0; }
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab:hover {
+    background: transparent;
+    color: var(--sbir-foreground);
+}
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab.active {
+    background: transparent;
+    color: var(--sbir-foreground);
+    font-weight: 600;
+}
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: transparent;
+    border-radius: 2px 2px 0 0;
+    transition: background-color 0.15s ease;
+}
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab.active::after {
+    background: var(--sbir-primary);
+}
+
+.sbir-board-toolbar-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex: 1 1 560px;
+    min-width: 320px;
+    gap: 10px;
+}
+
+.sbir-board-search {
+    flex: 1 1 220px;
+    min-width: 220px;
+    max-width: 360px;
+    width: 100%;
+}
+
+.sbir-board-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sbir-board-filter,
+.sbir-board-sort {
+    display: inline-flex;
+    align-items: center;
+}
+
+.sbir-board-search-input,
+.sbir-board-filter-select {
+    min-height: 42px;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--sbir-border);
+    border-radius: 10px;
+    background: var(--sbir-surface);
+    color: var(--sbir-foreground);
+    font-size: 14px;
+    line-height: 1.2;
+}
+.sbir-board-search-input {
+    width: 100%;
+}
+.sbir-board-filter-select {
+    width: auto;
+    min-width: 160px;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-search-input,
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
+    border: 1px solid var(--sbir-border) !important;
+    border-radius: 10px !important;
+    background: var(--sbir-surface) !important;
+    color: var(--sbir-foreground) !important;
+    box-shadow: none !important;
+    text-transform: none !important;
+}
+.sbir-board-search-input {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.sbir-board-search-input::placeholder {
+    color: var(--sbir-muted-foreground);
+}
+
+.sbir-board-search-input:focus,
+.sbir-board-filter-select:focus {
+    outline: none;
+    border-color: var(--sbir-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.sbir-tab-pane {
+    display: none;
+}
+
+.sbir-tab-pane.active {
+    display: block;
+}
+
+/* Roadmap modal */
+.sbir-roadmap-modal,
+.sbir-idea-modal { position: fixed; inset: 0; display: none; z-index: 99999; }
+.sbir-roadmap-modal.open,
+.sbir-idea-modal.open { display: block; }
+.sbir-modal-overlay { position: absolute; inset: 0; background: var(--sbir-drawer-overlay-bg); }
+.sbir-modal-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(560px, 92vw);
+    max-height: min(86vh, 760px);
+    transform: translate(-50%, -50%);
+    background: var(--sbir-modal-panel-bg);
+    color: var(--sbir-foreground);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 20px 20px 16px;
+    box-shadow: var(--sbir-modal-panel-shadow);
+    overflow-y: auto;
+}
+
+.sbir-modal-panel,
+.sbir-modal-panel * {
+    box-sizing: border-box;
+}
+
+.sbir-modal-panel .sbir-form-group input,
+.sbir-modal-panel .sbir-form-group select,
+.sbir-modal-panel .sbir-form-group textarea {
+    width: 100%;
+    max-width: 100%;
+}
+.sbir-modal-title { margin: 0 0 12px; font-size: 1.1rem; }
+.sbir-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sbir-background, #fff);
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--sbir-muted-foreground);
+    padding: 0;
+}
+.sbir-modal-close:hover { 
+    background: var(--sbir-surface-hover);
+    color: var(--sbir-foreground); 
+}
+.sbir-modal-close:active { 
+    background: var(--sbir-surface-active);
+    color: var(--sbir-primary); 
+}
+.sbir-modal-open { overflow: hidden; }
+
+/* Kanban Board */
+.sbir-roadmap {
+    padding: 1rem 0;
+}
+
+/*
+ * Column-based scrolling: only each column's items scroll, page stays still.
+ * Height can be tuned by overriding --sbir-kanban-height on the container.
+ */
+.sbir-kanban {
+    display: flex;
+    gap: var(--sbir-column-gap, 18px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 24px;
+    align-items: stretch;
+    height: var(--sbir-kanban-height, calc(100vh - 260px));
+    min-height: 480px;
+}
+
+.sbir-kanban-column {
+    background: var(--sbir-kanban-column-bg);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 0.75rem 0.75rem 1rem;
+    flex: 0 0 var(--sbir-column-width, 390px);
+    min-width: var(--sbir-column-width, 390px);
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.sbir-kanban-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding: 0.25rem 0.25rem 0.5rem;
+    border-bottom: none;
+}
+
+.sbir-kanban-header--minimal { padding: 6px 4px 10px; min-height: 44px; }
+.sbir-kanban-head-left { display:flex; align-items:center; gap: 0.5rem; min-width: 0; }
+.sbir-status-dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--status-color, #94a3b8); flex-shrink: 0; }
+/* Defensive: columns must align their first card to the same Y across columns.
+ * (a) Force a fixed reservation on the column header so all columns get the
+ * same offset before their first card, regardless of count chip width or
+ * pill-style border height. Beats the boundary's min-height:32px (specificity).
+ * (b) Zero out any first-child margin themes inject via .entry-content > *. */
+.sbir-board-container .sbir-kanban-column .sbir-kanban-header,
+.sbir-board-container .sbir-kanban-column .sbir-kanban-header--minimal {
+    min-height: 48px !important;
+    margin-bottom: 8px !important;
+    box-sizing: border-box;
+}
+.sbir-board-container .sbir-kanban-items > .sbir-kanban-item:first-child { margin-top: 0 !important; }
+.sbir-head-title { font-size: 0.875rem; font-weight: 600; color: var(--sbir-card-title-color); text-transform: none; letter-spacing: 0; }
+.sbir-kanban-header .sbir-head-title {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+.sbir-chip { display:inline-flex; align-items:center; justify-content:center; padding: 4px 10px; font-size: 12px; line-height: 1.3; border-radius: 9999px; border: 1px solid var(--sbir-border); color: var(--sbir-muted-foreground); background: transparent; font-weight: 500; }
+.sbir-chip-neutral { background: var(--sbir-muted); color: var(--sbir-muted-foreground); }
+/* Card-level category chips (roadmap kanban items): filled soft pill, no border. */
+.sbir-kanban-item .sbir-chip {
+    padding: 3px 10px;
+    font-size: 12px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    background: var(--sbir-muted);
+    border-color: transparent;
+    font-weight: 500;
+}
+
+.sbir-kanban-header h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sbir-foreground);
+}
+
+/* -------------------- COLUMN CONTAINER VARIANT (open) --------------------
+ * "Open" mode strips the per-column background, padding, and radius so the
+ * column reads as: [pill header] [stack of cards] sitting directly on the
+ * page background. Cards still have their own borders + shadows.
+ * Default ("boxed") = current behavior: existing rules apply unchanged. */
+.sbir-board-container[data-sbirp-column-container="open"] .sbir-kanban-column {
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible; /* let card hover shadow extend past column edge */
+}
+.sbir-board-container[data-sbirp-column-container="open"] .sbir-kanban-column .sbir-kanban-items {
+    padding: 4px 2px 6px; /* keep room for hover lift, drop side padding */
+}
+
+/* -------------------- COLUMN HEADER STYLE VARIANTS --------------------
+ * Three opt-in styles for the per-column status header. Default is `dot`
+ * (no override needed). `pill` and `bold` are activated via the Pro
+ * Design module by setting data-sbirp-header-style on the board container.
+ * Falls back gracefully on free installs (attribute is absent → dot stays).
+ * Each column inherits its accent via the inline `--status-color` set in
+ * roadmap-view.php, so colors react to per-status settings automatically.
+ * -------------------------------------------------------------------- */
+
+/* Pill: soft tint chip wraps just the left header group (dot + title + count).
+ * The + button stays neutral on the right.
+ * Fallback declarations precede color-mix() for browsers older than
+ * Chrome 111 / Safari 16.4 / Firefox 113. Older browsers see a neutral
+ * slate tint; modern browsers get the status-color tint. */
+.sbir-board-container[data-sbirp-header-style="pill"] .sbir-kanban-column .sbir-kanban-head-left {
+    background: rgba(148, 163, 184, 0.10);
+    background: color-mix(in srgb, var(--status-color, #94a3b8) 10%, transparent);
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    border: 1px solid color-mix(in srgb, var(--status-color, #94a3b8) 18%, transparent);
+    border-radius: 999px;
+    padding: 4px 10px 4px 10px;
+    flex: 0 0 auto; /* hug content so + button sits at column edge */
+}
+.sbir-board-container[data-sbirp-header-style="pill"] .sbir-kanban-column .sbir-head-title {
+    color: var(--status-color, #94a3b8) !important;
+    color: color-mix(in srgb, var(--status-color, #94a3b8) 92%, #0f172a) !important;
+}
+.sbir-board-container[data-sbirp-header-style="pill"] .sbir-kanban-column .sbir-kanban-head-left .sbir-chip-neutral {
+    background: rgba(148, 163, 184, 0.20);
+    background: color-mix(in srgb, var(--status-color, #94a3b8) 18%, transparent);
+    color: var(--status-color, #94a3b8);
+    color: color-mix(in srgb, var(--status-color, #94a3b8) 92%, #0f172a);
+    border-color: transparent;
+}
+
+/* -------------------- PRESET: PULSE (status-color tinted cards) --------------------
+ * Vertical wash: cards stay tinted from top to bottom in their column's
+ * status hue, only slightly lightening near the bottom. The tint persists
+ * through the whole card (not fading to white). Each column inherits its own
+ * `--status-color`. Falls back to flat card_bg on browsers without color-mix(). */
+.sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-kanban-item {
+    background: var(--sbir-card-bg, #ffffff);
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--status-color, #94a3b8) 14%, transparent) 0%,
+            color-mix(in srgb, var(--status-color, #94a3b8) 11%, transparent) 50%,
+            color-mix(in srgb, var(--status-color, #94a3b8) 8%, transparent) 100%
+        ),
+        var(--sbir-card-bg, #ffffff);
+    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 16%, var(--sbir-card-border, #e8ecf2));
+}
+.sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-kanban-item:hover {
+    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 30%, var(--sbir-card-hover-border, #cfd5df));
+}
+/* Pulse also tints idea cards (no per-card status color → use primary, sustained tint) */
+.sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-idea-item {
+    background: var(--sbir-card-bg, #ffffff);
+    background:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--sbir-primary, #6366f1) 9%, transparent) 0%,
+            color-mix(in srgb, var(--sbir-primary, #6366f1) 5%, transparent) 100%
+        ),
+        var(--sbir-card-bg, #ffffff);
+}
+
+/* Bold: filled status-color bar with white-on-color text. */
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-kanban-header {
+    background: var(--status-color, #94a3b8);
+    border-radius: 10px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
+    min-height: 40px;
+    border: 1px solid transparent;
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-head-title {
+    color: #ffffff !important;
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-status-dot {
+    background: rgba(255, 255, 255, 0.85);
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-kanban-head-left .sbir-chip-neutral {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    border-color: transparent;
+    font-weight: 600;
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-add-btn {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.30);
+    color: #ffffff;
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-add-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.45);
+    color: #ffffff;
+}
+
+.sbir-kanban-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 200px; /* ensure droppable area when column empty */
+    flex: 1 1 auto; /* fill remaining column height so drop zone extends to bottom */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Top/horizontal padding leaves room for the card's hover lift + drop shadow.
+     * Without this, translateY(-2px) on the first card clips against the
+     * items container's overflow:hidden edge. */
+    padding: 4px 6px 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+.sbir-kanban-items::-webkit-scrollbar {
+    width: 8px;
+}
+.sbir-kanban-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sbir-kanban-items::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+}
+.sbir-kanban-items::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+.sbir-kanban-item {
+    background: var(--sbir-card-bg);
+    border: 1px solid var(--sbir-card-border);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 22px 22px 18px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: var(--sbir-shadow);
+}
+.sbir-kanban-item:hover {
+    border-color: var(--sbir-card-hover-border) !important;
+    box-shadow: var(--sbir-card-hover-shadow, 0 14px 32px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04));
+    transform: translateY(-2px);
+}
+.sbir-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; margin-bottom: 10px; }
+.sbir-card-title { display:flex; align-items:baseline; gap: 8px; flex:1; min-width: 0; }
+.sbir-card-number {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--sbir-card-meta-color);
+    line-height: 1.4;
+    display: inline-flex;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+    writing-mode: horizontal-tb;
+    opacity: 0.6;
+    text-transform: uppercase;
+}
+.sbir-kanban-vote { display:flex; flex-direction:column; align-items:center; gap: 4px; flex-shrink:0; margin-left: auto; }
+.sbir-idea-vote { flex-shrink: 0; }
+/* Vote button styling (rest, hover, voted, icon, count).
+ * In normal (shield) mode the boundary block at section 4.2c wins on every
+ * property via !important. These rules ARE the visual baseline for
+ * .sbir-inherit-theme mode where the boundary is intentionally disabled.
+ * Do not delete without verifying inherit-theme rendering. */
+.sbir-kanban-vote .sbir-vote-btn,
+.sbir-idea-vote .sbir-vote-btn {
+    background: var(--sbir-vote-bg);
+    color: var(--sbir-vote-button-text);
+    border: 1px solid var(--sbir-vote-button-border);
+    padding: 4px 10px;
+    border-radius: var(--sbir-vote-radius, 10px);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 36px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.sbir-kanban-vote .sbir-vote-btn:hover:not(.voted),
+.sbir-idea-vote .sbir-vote-btn:hover:not(.voted) {
+    background: var(--sbir-vote-bg-hover);
+    border-color: var(--sbir-vote-button-hover-border, var(--sbir-card-hover-border));
+}
+.sbir-kanban-vote .sbir-vote-btn.voted,
+.sbir-idea-vote .sbir-vote-btn.voted {
+    background: var(--sbir-vote-bg-active);
+    border-color: var(--sbir-vote-button-active-border, var(--sbir-vote-accent));
+}
+.sbir-kanban-vote .sbir-vote-icon,
+.sbir-idea-vote .sbir-vote-icon {
+    color: var(--sbir-vote-accent);
+    width: var(--sbir-vote-icon-size, 18px);
+    height: var(--sbir-vote-icon-size, 18px);
+}
+.sbir-kanban-vote .sbir-vote-count,
+.sbir-kanban-vote .sbir-vote-count-num,
+.sbir-idea-vote .sbir-vote-count,
+.sbir-idea-vote .sbir-vote-count-num {
+    font-size: var(--sbir-vote-text-size, 12px);
+    font-weight: 600;
+    color: var(--sbir-vote-button-text);
+    min-width: 16px;
+    text-align: center;
+}
+
+.sbir-item-title {
+    font-size: calc(var(--sbir-card-title-size, 14px) + 2px);
+    font-weight: var(--sbir-card-title-weight, 600);
+    letter-spacing: -0.01em;
+    color: var(--sbir-card-title-color);
+    line-height: 1.35;
+    margin: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.sbir-item-excerpt {
+    font-size: var(--sbir-card-excerpt-size, 13px);
+    color: var(--sbir-card-excerpt-color);
+    line-height: 1.55;
+    margin-bottom: 14px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.sbir-meta-deadline-inline { display:flex; align-items:center; font-size:12px; color: var(--sbir-deadline-color, #f59e0b); }
+.sbir-roadmap .sbir-kanban-item .sbir-task-meta-right .sbir-meta-date { display: none; }
+.sbir-display-value { display: inline-flex; align-items: center; gap: 6px; }
+.sbir-edit-field { display: none; width: 100%; }
+
+/* Neutralize theme link styles inside our components */
+/* Respect theme when opted-in */
+.sbir-inherit-theme .sbir-roadmap .sbir-kanban-item,
+.sbir-inherit-theme .sbir-ideas .sbir-idea-item .sbir-idea-title a { all: revert !important; }
+
+/* Kill theme link styles on our cards and idea links */
+.sbir-roadmap .sbir-kanban-item { color: inherit !important; text-decoration: none !important; }
+.sbir-roadmap .sbir-kanban-item:visited { color: inherit !important; }
+.sbir-roadmap .sbir-kanban-item:hover { text-decoration: none !important; }
+.sbir-roadmap .sbir-kanban-item h4,
+.sbir-roadmap .sbir-kanban-item p,
+.sbir-roadmap .sbir-kanban-item .sbir-card-number { text-decoration: none !important; }
+
+.sbir-ideas .sbir-idea-item .sbir-idea-title a,
+.sbir-ideas .sbir-idea-item .sbir-idea-title a:visited { color: var(--sbir-card-title-color) !important; text-decoration: none !important; }
+.sbir-ideas .sbir-idea-item .sbir-idea-title a:hover { color: var(--sbir-card-title-color) !important; text-decoration: none !important; }
+
+.sbir-task-footer { display:flex; align-items:center; justify-content:space-between; gap: 12px; padding-top: 10px; }
+.sbir-task-meta-left { display:flex; align-items:center; gap: 12px; flex: 0 0 auto; }
+/* margin-left: auto guarantees right alignment even when .sbir-task-meta-left is empty
+ * or when a theme injects unexpected spacing/text-align inside entry content. */
+.sbir-task-meta-right { display:flex; align-items:center; gap: 12px; white-space: nowrap; margin-left: auto; flex: 0 0 auto; justify-content: flex-end; }
+.sbir-meta-icon { width:13px; height:13px; color: var(--sbir-card-meta-color); flex-shrink: 0; }
+.sbir-meta-date, .sbir-meta-comments, .sbir-meta-author { display:flex; align-items:center; gap:5px; font-size:12px; line-height:13px; color: var(--sbir-card-meta-color); }
+/*
+ * Meta alignment + sizing + pseudo-element neutralization are consolidated
+ * in sections 4.2d (colors/sizes) and 4.3a (pseudo neutralizer) above.
+ * Do not re-add those rules here.
+ */
+
+.sbir-category {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--sbir-muted);
+    color: var(--sbir-muted-foreground);
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid transparent;
+    font-weight: 500;
+}
+
+/* Ideas List */
+.sbir-ideas {
+    padding: 1rem 0;
+}
+
+.sbir-ideas-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, var(--sbir-ideas-sidebar-width, 380px));
+    gap: 16px;
+    align-items: start;
+}
+
+/* Prevent squeezed two-column ideas layout in narrower theme content wrappers. */
+@media (max-width: 1180px) {
+    .sbir-ideas-layout {
+        grid-template-columns: 1fr;
+    }
+    .sbir-ideas-sidebar {
+        position: static;
+    }
+}
+
+.sbir-ideas-main {
+    min-width: 0;
+}
+
+.sbir-ideas-sidebar {
+    position: sticky;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sbir-idea-compose-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--sbir-primary);
+    border-radius: var(--sbir-radius, 12px);
+    background: var(--sbir-primary);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.sbir-idea-compose-trigger::before {
+    content: "+";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.sbir-idea-compose-trigger:hover {
+    background: var(--sbir-primary-hover);
+    border-color: var(--sbir-primary-hover);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
+}
+
+.sbir-idea-compose-trigger:active {
+    transform: translateY(1px);
+}
+
+.sbir-idea-compose-trigger:focus-visible {
+    outline: 2px solid var(--sbir-focus);
+    outline-offset: 2px;
+}
+
+.sbir-widget {
+    background: var(--sbir-card-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    box-shadow: var(--sbir-shadow);
+    padding: 16px;
+    font-family: inherit;
+    color: var(--sbir-foreground);
+}
+
+.sbir-widget-compose {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.sbir-widget-title {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sbir-card-meta-color);
+}
+
+.sbir-widget-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sbir-widget-link {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-decoration: none;
+    color: inherit;
+    padding: 8px 10px;
+    margin: 0 -10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+}
+
+.sbir-widget-link:hover {
+    background: var(--sbir-muted);
+}
+
+.sbir-widget-link-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sbir-card-title-color);
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+}
+
+.sbir-widget-link-meta {
+    font-size: 12px;
+    color: var(--sbir-muted-foreground);
+    line-height: 1.4;
+}
+
+.sbir-widget-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--sbir-muted-foreground);
+}
+
+.sbir-widget-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.sbir-widget-count {
+    margin-left: 4px;
+    color: var(--sbir-card-meta-color);
+    font-size: 11px;
+}
+
+.sbir-ideas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sbir-idea-item.sbir-page-hidden {
+    display: none !important;
+}
+
+.sbir-ideas-pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 4px 0 0;
+    color: var(--sbir-muted-foreground);
+    font-size: 13px;
+}
+
+.sbir-ideas-pagination[hidden] {
+    display: none !important;
+}
+
+.sbir-pagination-btn,
+.sbir-pagination-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    background: var(--sbir-surface);
+    color: var(--sbir-foreground);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.sbir-pagination-btn:hover:not(:disabled),
+.sbir-pagination-page:hover:not(.is-active) {
+    background: var(--sbir-muted);
+    color: var(--sbir-foreground);
+    border-color: var(--sbir-card-hover-border);
+}
+
+.sbir-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.sbir-pagination-page.is-active {
+    background: var(--sbir-primary);
+    border-color: var(--sbir-primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+.sbir-pagination-pages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sbir-pagination-pages li {
+    display: inline-flex;
+}
+
+.sbir-pagination-gap {
+    padding: 0 6px;
+    color: var(--sbir-muted-foreground);
+    user-select: none;
+}
+
+.sbir-pagination-summary {
+    margin-left: auto;
+    color: var(--sbir-muted-foreground);
+    font-size: 12px;
+}
+
+.sbir-idea-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 22px 22px 18px;
+    background: var(--sbir-card-bg);
+    border: 1px solid var(--sbir-card-border);
+    border-radius: var(--sbir-radius);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: var(--sbir-shadow);
+}
+
+.sbir-idea-item:hover {
+    box-shadow: var(--sbir-card-hover-shadow, 0 14px 32px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.04));
+    border-color: var(--sbir-card-hover-border) !important;
+    transform: translateY(-2px);
+}
+
+/* Placeholder for dragging */
+.sbir-sortable-placeholder {
+    border: 2px dashed var(--sbir-border);
+    background: rgba(148, 163, 184, 0.08);
+    border-radius: var(--sbir-radius, 12px);
+    margin: 0.25rem 0;
+}
+/* Add button — neutral pill, independent of toolbar surface */
+.sbir-add-btn {
+    background: transparent;
+    border: 1px solid var(--sbir-border);
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--sbir-muted-foreground);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sbir-add-btn:hover {
+    background: var(--sbir-muted);
+    border-color: var(--sbir-card-hover-border);
+    color: var(--sbir-foreground);
+}
+
+.sbir-add-btn:active {
+    background: var(--sbir-muted);
+    border-color: var(--sbir-card-hover-border);
+    color: var(--sbir-foreground);
+}
+
+/* Idea list vote styles: shared tokens/sizing with roadmap. */
+.sbir-idea-vote .sbir-vote-btn:disabled {
+    background: var(--sbir-vote-bg-active);
+    border-color: var(--sbir-card-hover-border);
+    color: var(--sbir-vote-button-text);
+    cursor: default;
+    opacity: 1;
+}
+
+.sbir-idea-content {
+    flex: 1;
+}
+
+.sbir-idea-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.sbir-idea-title {
+    margin: 0;
+    font-size: calc(var(--sbir-card-title-size, 14px) + 2px);
+    font-weight: var(--sbir-card-title-weight, 600);
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.sbir-idea-title a {
+    color: var(--sbir-card-title-color);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.sbir-idea-title a:hover {
+    color: var(--sbir-primary);
+}
+
+.sbir-idea-number {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--sbir-card-meta-color);
+    opacity: 0.55;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    align-self: center;
+}
+
+.sbir-idea-description {
+    margin: 0 0 1rem;
+    font-size: var(--sbir-card-excerpt-size, 13px);
+    color: var(--sbir-card-excerpt-color);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sbir-idea-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 12px;
+    color: var(--sbir-card-meta-color);
+}
+
+.sbir-idea-meta .sbir-category {
+    margin: 0;
+}
+
+.sbir-form-description {
+    margin: 0 0 1rem;
+    color: var(--sbir-muted-foreground);
+    font-size: 0.875rem;
+}
+
+.sbir-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.sbir-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--sbir-foreground);
+}
+
+.sbir-form-group .required {
+    color: #ef4444;
+}
+
+.sbir-form-group input,
+.sbir-form-group textarea,
+.sbir-form-group select,
+.single-sbir_item .comment-form input,
+.single-sbir_item .comment-form textarea {
+    width: 100%;
+    padding: 0.625rem;
+    background: var(--sbir-background);
+    border: 1px solid var(--sbir-border);
+    border-radius: calc(var(--sbir-radius) - 0.125rem);
+    font-size: 0.875rem;
+    color: var(--sbir-foreground);
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.sbir-form-group input:focus,
+.sbir-form-group textarea:focus,
+.sbir-form-group select:focus,
+.single-sbir_item .comment-form input:focus,
+.single-sbir_item .comment-form textarea:focus {
+    outline: none;
+    border-color: var(--sbir-primary);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.sbir-form-group input:hover,
+.sbir-form-group textarea:hover,
+.sbir-form-group select:hover,
+.single-sbir_item .comment-form input:hover,
+.single-sbir_item .comment-form textarea:hover {
+    border-color: #cbd5e1;
+}
+
+.sbir-form-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Buttons */
+.sbir-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--sbir-foreground);
+    background: var(--sbir-surface);
+}
+
+/* Shared button base (vote + generic) */
+.sbir-btn,
+.sbir-vote-btn {
+    border: 1px solid transparent;
+    border-radius: calc(var(--sbir-radius) - 0.125rem);
+    transition: background-color 0.08s ease, border-color 0.08s ease, color 0.08s ease;
+}
+
+.sbir-btn-primary {
+    background: var(--sbir-primary);
+    color: white;
+}
+
+.sbir-btn-primary:hover {
+    background: var(--sbir-primary-hover);
+}
+
+.sbir-btn-primary:active {
+    background: var(--sbir-primary-active);
+}
+
+.sbir-btn-secondary {
+    background: var(--sbir-background);
+    border-color: var(--sbir-border);
+    color: var(--sbir-foreground);
+}
+
+.sbir-btn-secondary:hover {
+    background: var(--sbir-surface-hover);
+}
+
+.sbir-btn-secondary:active {
+    background: var(--sbir-surface-active);
+}
+
+.sbir-btn-ghost {
+    background: transparent;
+    border-color: var(--sbir-border);
+    color: var(--sbir-foreground);
+}
+
+.sbir-btn-ghost:hover {
+    background: var(--sbir-surface-hover);
+}
+
+.sbir-btn-ghost:active {
+    background: var(--sbir-surface-active);
+}
+
+.sbir-btn:disabled,
+.sbir-btn[disabled] {
+    background: var(--sbir-muted);
+    color: var(--sbir-disabled);
+    border-color: var(--sbir-border);
+    cursor: not-allowed;
+}
+
+.sbir-submit-idea-btn {
+    margin-bottom: 1rem;
+}
+
+/* Messages */
+.sbir-form-message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: calc(var(--sbir-radius) - 0.125rem);
+    font-size: 0.875rem;
+}
+
+.sbir-form-message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.sbir-form-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.sbir-notice {
+    padding: 1rem;
+    background: var(--sbir-muted);
+    border-radius: var(--sbir-radius);
+    text-align: center;
+    color: var(--sbir-muted-foreground);
+}
+
+/* Board Selector */
+.sbir-board-selector {
+    padding: 2rem 0;
+}
+
+.sbir-selector-title {
+    margin: 0 0 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--sbir-foreground);
+}
+
+.sbir-boards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.sbir-board-card {
+    padding: 1.5rem;
+    background: var(--sbir-background);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius);
+    text-decoration: none;
+    color: var(--sbir-foreground);
+    transition: all 0.2s ease;
+}
+
+.sbir-board-card:hover {
+    box-shadow: var(--sbir-shadow);
+    transform: translateY(-2px);
+}
+
+.sbir-board-card img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+    border-radius: calc(var(--sbir-radius) - 0.25rem);
+}
+
+.sbir-board-card h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.sbir-board-card p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--sbir-muted-foreground);
+}
+
+/* No Ideas State */
+.sbir-no-ideas {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--sbir-muted);
+    border-radius: var(--sbir-radius);
+}
+
+.sbir-no-ideas p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--sbir-muted-foreground);
+}
+
+/* Drawer */
+.sbir-drawer-open { overflow: hidden; }
+#sbir-drawer { position: fixed; inset: 0; display:none; z-index: 100000; }
+#sbir-drawer.open { display:block; }
+#sbir-drawer .sbir-drawer-overlay { position:absolute; inset:0; background: var(--sbir-drawer-overlay-bg); backdrop-filter: blur(3px); opacity: 0; animation: sbir-overlay-in 120ms ease forwards; }
+#sbir-drawer .sbir-drawer-panel { position:absolute; top:0; right:0; width: min(720px, 92%); height:100%; background:var(--sbir-drawer-panel-bg); box-shadow: var(--sbir-drawer-panel-shadow); border-left: 1px solid var(--sbir-border); border-top-left-radius: 12px; border-bottom-left-radius: 12px; display:flex; flex-direction:column; transform: translateX(12px); animation: sbir-drawer-in 160ms ease-out forwards; }
+#sbir-drawer .sbir-drawer-content { padding: 0; overflow:auto; }
+/* Remove inner container spacing; apply panel-aligned spacing directly to sections */
+#sbir-drawer .sbir-drawer-close { align-self:flex-end; border:0; background:transparent; font-size:22px; padding:10px 12px; cursor:pointer; color: var(--sbir-muted-foreground); }
+body:not(.sbir-inherit-theme) #sbir-drawer {
+    z-index: 2147483000 !important;
+    isolation: isolate;
+}
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-drawer-overlay {
+    z-index: 1 !important;
+}
+body:not(.sbir-inherit-theme) #sbir-drawer .sbir-drawer-panel {
+    z-index: 2 !important;
+}
+@keyframes sbir-drawer-in { from { transform: translateX(24px); opacity: 0.96; } to { transform: translateX(0); opacity: 1; } }
+@keyframes sbir-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Skeleton placeholder */
+.sbir-skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%); background-size: 400% 100%; animation: sbir-skeleton-shimmer 1.2s ease-in-out infinite; border-radius: 6px; }
+@keyframes sbir-skeleton-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+/* Single inside drawer */
+#sbir-drawer .comment-respond {
+    margin: 6px 0 0;
+}
+
+/* Comments + textarea aesthetics */
+.single-sbir_item .comment-form textarea {
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.single-sbir_item .comment-form textarea::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+    font-weight: 400;
+    letter-spacing: normal;
+}
+
+
+
+
+
+.sbir-item-single {
+    background: var(--sbir-background);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius);
+    overflow: hidden;
+    box-shadow: var(--sbir-shadow);
+}
+
+.sbir-btn:focus-visible,
+.sbir-comment-reply a:focus-visible,
+.sbir-vote-btn:focus-visible,
+.sbir-menu-item:focus-visible {
+    outline: 2px solid var(--sbir-focus);
+    outline-offset: 2px;
+    border-radius: 10px;
+}
+
+.single-sbir_item #comments {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.single-sbir_item #comments h2,
+.single-sbir_item #comments h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sbir-foreground);
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.single-sbir_item .comment-form,
+.single-sbir_item .comment-list {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.single-sbir_item .comment-list {
+    margin-top: 1rem;
+}
+
+.single-sbir_item .comment {
+    border-bottom: 1px solid var(--sbir-border);
+    padding: 1rem 0;
+}
+
+.single-sbir_item .comment:last-child {
+    border-bottom: 0;
+}
+
+.single-sbir_item .comment-form input[type="submit"] {
+    background: var(--sbir-muted);
+    color: var(--sbir-muted-foreground);
+    border: 1px solid var(--sbir-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.single-sbir_item .comment-form input[type="submit"]:hover { background: var(--sbir-border); color: var(--sbir-foreground); }
+.single-sbir_item .comment-form textarea:focus ~ .form-submit input[type="submit"],
+.single-sbir_item .comment-form textarea:not(:placeholder-shown) ~ .form-submit input[type="submit"],
+.single-sbir_item .comment-form input[type="submit"].is-active {
+    background: var(--sbir-primary);
+    color: #fff;
+    border-color: var(--sbir-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sbir-board-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .sbir-board-toolbar-controls {
+        margin-left: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .sbir-board-filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .sbir-board-filter,
+    .sbir-board-sort {
+        flex: 1 1 180px;
+    }
+    .sbir-board-filter-select {
+        width: 100%;
+    }
+    .sbir-board-search {
+        max-width: 100%;
+    }
+    /* On small screens, let the whole page scroll (no column-level scrolling). */
+    .sbir-kanban {
+        height: auto;
+        min-height: 0;
+        overflow-y: visible;
+    }
+    .sbir-kanban-column {
+        max-height: none;
+        overflow: visible;
+    }
+    .sbir-kanban-items {
+        overflow-y: visible;
+        padding-right: 0;
+    }
+    .single-sbir_item .comment-form,
+    .single-sbir_item .comment-list { padding: 1rem; }
+    .sbir-ideas-layout {
+        grid-template-columns: 1fr;
+    }
+    .sbir-ideas-sidebar {
+        position: static;
+    }
+    .sbir-idea-item { flex-direction: column; }
+    .sbir-idea-vote { align-self: flex-start; }
+    .sbir-vote-btn { flex-direction: row; gap: 0.5rem; }
+    .sbir-vote-btn svg { margin-bottom: 0; }
+    .sbir-form-actions { flex-direction: column; }
+    .sbir-btn { width: 100%; }
+    .sbir-pagination-summary {
+        width: 100%;
+        margin-left: 0;
+        order: 99;
+    }
+}
+
+/* ============================================================
+   BASE COMMENT STYLES (non-drawer / single page context)
+   ============================================================ */
+
+/* Base discussion container */
+.sbir-discussion { padding: 1rem 0; }
+.sbir-discussion .sbir-discussion-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem; }
+.sbir-discussion-title { font-size: 1rem; font-weight: 600; color: var(--sbir-foreground); display:flex; align-items:center; gap:8px; }
+.sbir-count-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 6px; border:1px solid var(--sbir-border); border-radius:999px; font-size:11px; font-weight:600; color: var(--sbir-muted-foreground); background:var(--sbir-muted); }
+
+/* Sort controls */
+.sbir-comment-sort { display:flex; gap:6px; }
+.sbir-sort-btn { padding: 6px 10px; border: 1px solid var(--sbir-border); background: var(--sbir-surface); color: var(--sbir-muted-foreground); border-radius: 9999px; font-size: 12px; cursor: pointer; }
+.sbir-sort-btn:hover { background: var(--sbir-muted); color: var(--sbir-foreground); }
+.sbir-sort-btn.active { background: var(--sbir-primary); color: #fff; border-color: var(--sbir-primary); }
+.sbir-sort-btn:active { background: var(--sbir-primary-hover); color: #fff; border-color: var(--sbir-primary-hover); }
+
+/* Base comment list */
+.sbir-comment-list { list-style:none; margin:0; padding:0; }
+.sbir-comment-card { background: transparent; border: 0; padding: 0; margin-bottom: 0.75rem; }
+.sbir-comment-list > li { border-top: 1px solid #f1f5f9; padding-top: 0.75rem; margin-top: 0.75rem; }
+.sbir-comment-list > li:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+.sbir-comment-list .children { list-style: none; margin: 12px 0 0 48px; padding: 0; }
+
+/* Comment row layout */
+.sbir-comment-row { display:flex; align-items:flex-start; gap:12px; }
+.sbir-avatar-wrap { flex:0 0 auto; }
+.sbir-comment-avatar { width:36px; height:36px; border-radius: 9999px; display: block; }
+.sbir-comment-main { flex:1 1 auto; min-width:0; }
+.sbir-comment-header { display:flex; align-items:center; justify-content:space-between; }
+.sbir-comment-meta { display: flex; align-items: center; gap: 8px; }
+.sbir-author-name { font-weight:600; font-size: 14px; color: var(--sbir-foreground); }
+.sbir-comment-time { font-size: 13px; color: var(--sbir-muted-foreground); }
+.sbir-comment-content { color: var(--sbir-foreground); font-size: 14px; line-height: 1.6; margin: 4px 0 10px; }
+.sbir-comment-content p { margin: 0; }
+
+/* Comment actions */
+.sbir-comment-actions { display:flex; align-items:center; gap: 20px; }
+.sbir-comment-like { display:inline-flex; align-items:center; gap:6px; background: transparent; border: 0; padding: 0; color: var(--sbir-muted-foreground); cursor: pointer; font-size: 14px; }
+.sbir-comment-like:hover { color: var(--sbir-foreground); }
+.sbir-comment-like[aria-pressed="true"] { color: var(--sbir-primary); }
+.sbir-like-icon { width:18px; height:18px; }
+.sbir-like-count { font-size: 14px; font-weight: 500; }
+.sbir-comment-reply a { display:inline-flex; align-items:center; gap:6px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--sbir-muted-foreground); font-weight: 500; font-size: 14px; text-decoration: none; }
+.sbir-comment-reply a:hover { color: var(--sbir-foreground); }
+
+/* Comment menu */
+.sbir-comment-menu-wrap { position:relative; margin-left:auto; }
+.sbir-comment-menu { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: transparent; border: 0; padding: 0; border-radius: 6px; color: var(--sbir-muted-foreground); cursor: pointer; }
+.sbir-comment-menu:hover { background: var(--sbir-muted); }
+.sbir-comment-menu-popover { position:absolute; top:100%; right:0; background:#fff; border:1px solid var(--sbir-border); border-radius:8px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1); padding:4px; min-width:120px; display:none; z-index:1000; }
+.sbir-comment-menu-wrap.open .sbir-comment-menu-popover { display:block; }
+.sbir-menu-item { display:block; width:100%; text-align:left; background:transparent; border:0; padding:8px 12px; border-radius:6px; font-size: 13px; color: var(--sbir-foreground); cursor:pointer; }
+.sbir-menu-item:hover { background: var(--sbir-muted); }
+
+/* Reply form positioning */
+.sbir-comment-list .comment-respond,
+.sbir-comment-list #respond { margin: 16px 0 0 48px !important; padding: 0 !important; }
+.sbir-comment-list .children .comment-respond,
+.sbir-comment-list .children #respond { margin-left: 44px !important; }
+
+/* Hide WP reply title */
+.comment-respond #reply-title,
+.sbir-comment-list #reply-title,
+.sbir-discussion #reply-title { display:none !important; }
+
+/* Guest commenter fields + consent bottom placement */
+.sbir-comment-form .sbir-guest-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 0 10px;
+}
+.sbir-comment-form .sbir-guest-field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sbir-muted-foreground, #475569);
+}
+.sbir-comment-form .sbir-guest-field input {
+    width: 100%;
+    max-width: 320px;
+    height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--sbir-border, #e2e8f0);
+    border-radius: 8px;
+    font-size: 13px;
+    background: var(--sbir-card-bg, #fff);
+    color: var(--sbir-foreground, #0f172a);
+}
+.sbir-comment-form-card .sbir-comment-consent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 10px 12px 0;
+    font-size: 12.5px;
+    color: var(--sbir-muted-foreground, #475569);
+    border-top: 1px solid var(--sbir-border, #e7edf5);
+}
+.sbir-comment-form-card .sbir-comment-consent input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+}
+.sbir-comment-form-card .sbir-comment-consent label {
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+/* Trim theme wrappers on single board pages */
+body.single-sbir_board .has-global-padding{padding-top:0!important;padding-bottom:0!important;margin-top:0!important;margin-bottom:0!important}
+body.single-sbir_board .wp-block-group.alignfull{margin-top:0!important}
+body.single-sbir_board .wp-block-post-content{margin-top:0!important;padding-top:0!important}
+
+/* ============================================================
+   NEW DRAWER DESIGN - Match reference spec
+   ============================================================ */
+
+/* Drawer Header */
+#sbir-drawer .sbir-drawer-header {
+    padding: 16px 24px 16px;
+    border-bottom: 1px solid var(--sbir-drawer-divider-color);
+    background: var(--sbir-drawer-surface-bg);
+}
+
+#sbir-drawer .sbir-drawer-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+#sbir-drawer .sbir-drawer-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#sbir-drawer .sbir-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+#sbir-drawer .sbir-item-id {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sbir-muted-foreground);
+}
+
+#sbir-drawer .sbir-drawer-header-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+#sbir-drawer .sbir-drawer-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#sbir-drawer .sbir-drawer-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 560px;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    color: var(--sbir-foreground) !important;
+    letter-spacing: -0.02em !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+#sbir-drawer .sbir-edit-btn-drawer,
+#sbir-drawer .sbir-move-to-roadmap-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#sbir-drawer.sbir-editing .sbir-edit-btn-drawer {
+    display: none;
+}
+
+#sbir-drawer .sbir-drawer-title .sbir-edit-title {
+    display: none;
+    width: 100%;
+    max-width: 420px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--sbir-foreground);
+    background: var(--sbir-drawer-surface-bg);
+}
+
+#sbir-drawer.sbir-editing .sbir-drawer-title .sbir-display-title {
+    display: none;
+}
+
+#sbir-drawer.sbir-editing .sbir-drawer-title .sbir-edit-title {
+    display: block;
+    margin-top: 0;
+    width: min(100%, 420px);
+}
+
+#sbir-drawer .sbir-drawer-title .sbir-display-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Inline Edit button (pill style next to title) */
+#sbir-drawer .sbir-edit-btn-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sbir-muted-foreground);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+#sbir-drawer .sbir-edit-btn-inline:hover {
+    background: var(--sbir-muted);
+    border-color: var(--sbir-border);
+    color: var(--sbir-foreground);
+}
+
+#sbir-drawer .sbir-edit-btn-inline svg {
+    width: 14px;
+    height: 14px;
+}
+
+#sbir-drawer .sbir-move-to-roadmap-top {
+    padding: 7px 14px;
+    border-radius: 9999px;
+    border-color: transparent;
+    background: var(--sbir-primary, #3b82f6);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    gap: 8px;
+}
+
+#sbir-drawer .sbir-move-to-roadmap-top:hover {
+    background: var(--sbir-primary-hover, #2563eb);
+    border-color: transparent;
+    color: #ffffff;
+}
+
+#sbir-drawer .sbir-move-to-roadmap-top .sbir-move-to-roadmap-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: currentColor;
+}
+
+#sbir-drawer .sbir-move-to-roadmap-top .sbir-move-to-roadmap-label {
+    display: inline-flex;
+    align-items: center;
+}
+
+#sbir-drawer .sbir-drawer-header-right {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Subscribe button (drawer header + standalone) */
+.sbir-subscribe {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.sbir-subscribe-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 12px;
+    min-width: 52px;
+    min-height: 52px;
+    background: var(--sbir-vote-bg, #fff);
+    border: 1px solid var(--sbir-vote-button-border, #f3f4f6);
+    border-radius: 10px;
+    color: var(--sbir-muted-foreground, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sbir-subscribe-btn:hover {
+    background: var(--sbir-vote-bg-hover, #f5f3ff);
+    border-color: var(--sbir-card-hover-border, #e5e7eb);
+    color: var(--sbir-foreground, #0f172a);
+}
+
+.sbir-subscribe-btn.is-subscribed {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.sbir-subscribe-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.sbir-subscribe-label {
+    font-size: 11px;
+    line-height: 1;
+}
+
+.sbir-subscribe-guest {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.sbir-subscribe-guest input.sbir-subscribe-email {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 32px;
+    padding: 4px 10px;
+    border: 1px solid var(--sbir-border, #e2e8f0);
+    border-radius: 8px;
+    font-size: 12px;
+    background: var(--sbir-card-bg, #fff);
+    color: var(--sbir-foreground, #0f172a);
+}
+
+.sbir-subscribe-guest .sbir-subscribe-confirm {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+.sbir-subscribe-message {
+    margin: 0;
+    font-size: 12px;
+    color: var(--sbir-muted-foreground, #64748b);
+}
+
+.sbir-subscribe-message.error {
+    color: #b91c1c;
+}
+
+/* Drawer header right alignment for vote + subscribe */
+#sbir-drawer .sbir-drawer-header-right {
+    --sbir-drawer-action-height: 56px;
+    align-items: center;
+    gap: 10px;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe {
+    position: relative;
+    align-self: auto;
+    justify-content: center;
+    gap: 0;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-message {
+    display: none;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-guest {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 280px;
+    max-width: calc(100vw - 48px);
+    padding: 10px;
+    border: 1px solid var(--sbir-border, #e2e8f0);
+    border-radius: 10px;
+    background: var(--sbir-card-bg, #fff);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-guest input.sbir-subscribe-email {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--sbir-border, #e2e8f0);
+    border-radius: 8px;
+    background: var(--sbir-background, #fff);
+    color: var(--sbir-foreground, #0f172a);
+    font-size: 13px;
+    line-height: 1.2;
+    box-shadow: none;
+    outline: none;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-guest .sbir-subscribe-confirm {
+    flex: 0 0 auto;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-btn {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: var(--sbir-drawer-action-height);
+    min-height: var(--sbir-drawer-action-height);
+    min-width: 120px;
+    width: auto;
+    max-width: none;
+    padding: 8px 12px;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1;
+    border-radius: var(--sbir-vote-radius, 10px);
+    white-space: nowrap;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-btn .sbir-subscribe-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-subscribe-btn .sbir-subscribe-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Drawer vote button styling */
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: var(--sbir-drawer-action-height);
+    min-height: var(--sbir-drawer-action-height);
+    padding: 8px 12px;
+    min-width: 52px;
+    background: var(--sbir-vote-bg);
+    border: 1px solid var(--sbir-vote-button-border);
+    border-radius: var(--sbir-vote-radius, 10px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-btn:hover:not(.voted) {
+    background: var(--sbir-vote-bg-hover);
+    border-color: var(--sbir-card-hover-border);
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-btn.voted {
+    background: var(--sbir-vote-bg-active);
+    border-color: var(--sbir-card-hover-border);
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-icon {
+    width: var(--sbir-vote-icon-size, 18px);
+    height: var(--sbir-vote-icon-size, 18px);
+    color: var(--sbir-vote-accent);
+}
+
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-count,
+#sbir-drawer .sbir-drawer-header-right .sbir-vote-count-num {
+    font-size: var(--sbir-vote-text-size, 12px);
+    font-weight: 600;
+    color: var(--sbir-vote-button-text);
+}
+
+/* Drawer Body */
+#sbir-drawer .sbir-drawer-body {
+    padding: 16px 24px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Meta Panel - 2-column grid */
+#sbir-drawer .sbir-meta-panel {
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    box-shadow: none;
+}
+
+#sbir-drawer .sbir-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+}
+
+#sbir-drawer .sbir-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#sbir-drawer .sbir-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sbir-card-meta-color);
+    margin: 0;
+}
+
+#sbir-drawer .sbir-meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sbir-foreground);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sbir-drawer .sbir-meta-value .sbir-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+
+#sbir-drawer .sbir-meta-value .sbir-display-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#sbir-drawer .sbir-meta-muted {
+    color: var(--sbir-card-meta-color);
+}
+
+#sbir-drawer .sbir-meta-muted em {
+    font-style: italic;
+}
+
+/* Edit fields in meta panel */
+#sbir-drawer .sbir-meta-panel .sbir-edit-field {
+    display: none;
+    padding: 6px 10px;
+    border: 1px solid var(--sbir-border);
+    border-radius: 6px;
+    font-size: 13px;
+    background: var(--sbir-drawer-surface-bg);
+    color: var(--sbir-foreground);
+    width: 100%;
+    max-width: 160px;
+}
+
+#sbir-drawer .sbir-meta-panel .sbir-edit-field:focus {
+    outline: none;
+    border-color: var(--sbir-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Meta value icons */
+#sbir-drawer .sbir-meta-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--sbir-card-meta-color);
+    flex-shrink: 0;
+}
+
+/* Description Section */
+#sbir-drawer .sbir-description-section {
+    margin-bottom: 12px;
+}
+
+#sbir-drawer .sbir-section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sbir-foreground);
+    margin: 0 0 10px 0;
+}
+
+#sbir-drawer .sbir-section-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--sbir-muted-foreground);
+}
+
+#sbir-drawer .sbir-description-card {
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 0;
+    box-shadow: none;
+}
+
+#sbir-drawer .sbir-description-content {
+    font-size: var(--sbir-body-size, 14px);
+    line-height: 1.6;
+    color: var(--sbir-card-excerpt-color);
+    padding: 16px 18px;
+}
+
+#sbir-drawer .sbir-description-content p {
+    margin: 0 0 0.75rem;
+}
+
+#sbir-drawer .sbir-description-content p:last-child {
+    margin-bottom: 0;
+}
+
+#sbir-drawer .sbir-description-card .sbir-edit-field {
+    display: none;
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+    background: var(--sbir-drawer-surface-bg);
+    color: var(--sbir-foreground);
+    resize: vertical;
+    min-height: 120px;
+    box-sizing: border-box;
+}
+
+#sbir-drawer .sbir-description-card .sbir-edit-field:focus {
+    outline: none;
+    border-color: var(--sbir-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Edit mode */
+#sbir-drawer.sbir-editing .sbir-meta-value .sbir-display-value,
+#sbir-drawer.sbir-editing .sbir-description-content {
+    display: none;
+}
+
+#sbir-drawer.sbir-editing .sbir-meta-panel .sbir-edit-field,
+#sbir-drawer.sbir-editing .sbir-description-card .sbir-edit-field {
+    display: block;
+}
+
+#sbir-drawer.sbir-editing .sbir-description-card {
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Autosave status indicator */
+#sbir-drawer .sbir-autosave-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 26px;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+}
+
+#sbir-drawer .sbir-autosave-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--sbir-muted-foreground);
+    background: transparent;
+    border-radius: 999px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+#sbir-drawer .sbir-autosave-status::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.6;
+}
+
+#sbir-drawer .sbir-autosave-status[data-state="saving"] {
+    color: var(--sbir-foreground);
+    background: var(--sbir-muted);
+}
+
+#sbir-drawer .sbir-autosave-status[data-state="saved"] {
+    color: #047857;
+    background: #ecfdf5;
+}
+
+#sbir-drawer .sbir-autosave-status[data-state="error"] {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+/* Discussion Section in Drawer */
+#sbir-drawer .sbir-discussion-section {
+    margin-top: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+}
+
+/* Discussion header */
+#sbir-drawer .sbir-discussion {
+    padding: 0;
+}
+
+#sbir-drawer .sbir-discussion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 0;
+    border: none;
+}
+
+#sbir-drawer .sbir-discussion-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sbir-foreground);
+    margin: 0;
+}
+
+#sbir-drawer .sbir-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--sbir-muted);
+    border: 1px solid var(--sbir-border);
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sbir-muted-foreground);
+}
+
+#sbir-drawer .sbir-comment-sort {
+    display: flex;
+    gap: 4px;
+}
+
+#sbir-drawer .sbir-sort-btn {
+    padding: 6px 12px;
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sbir-muted-foreground);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#sbir-drawer .sbir-sort-btn:hover {
+    background: var(--sbir-muted);
+    color: var(--sbir-foreground);
+}
+
+#sbir-drawer .sbir-sort-btn.active {
+    background: var(--sbir-primary);
+    border-color: var(--sbir-primary);
+    color: #ffffff;
+}
+
+#sbir-drawer .sbir-sort-btn:active {
+    background: var(--sbir-primary-hover);
+    border-color: var(--sbir-primary-hover);
+    color: #ffffff;
+}
+
+/* Comment form card */
+#sbir-drawer .sbir-comment-form-card {
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    padding: 0 !important;
+    margin-bottom: 16px;
+    box-shadow: none;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Override Astra and ALL theme padding on comment form elements */
+#sbir-drawer .sbir-comment-form-card .comment-respond,
+#sbir-drawer .sbir-comment-form-card .comment-form,
+#sbir-drawer .sbir-comment-form-card .sbir-comment-form,
+#sbir-drawer .sbir-comment-form-card form,
+#sbir-drawer .sbir-comment-form-card .comment-form-comment,
+#sbir-drawer .sbir-comment-form-card p,
+.ast-separate-container #sbir-drawer .comment-respond,
+.ast-separate-container #sbir-drawer .sbir-comment-form-card .comment-respond,
+#sbir-drawer .ast-separate-container .comment-respond,
+body.flavor #sbir-drawer .comment-respond {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Comment form top row (avatar + textarea) */
+#sbir-drawer .sbir-comment-form-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px 12px 18px;
+}
+
+#sbir-drawer .sbir-comment-form-top .sbir-comment-form {
+    flex: 1;
+    min-width: 0;
+}
+
+/*
+ * WordPress comment_form() wraps our custom comment_field in <div id="respond"
+ * class="comment-respond"><form>. That wrapper becomes the actual flex child
+ * of .sbir-comment-form-top and does not inherit flex: 1, so the inner editor
+ * can collapse to single-character width on themes with aggressive content
+ * styling (e.g. Colibri, which targets .entry-content .comment-respond p).
+ *
+ * We use !important here because some themes reach into comment markup with
+ * selectors specific enough to beat our scoped ones. Applied both inside the
+ * drawer and on the inline item-single view for consistency.
+ */
+.sbir-comment-form-top > .comment-respond,
+.sbir-comment-form-top > form,
+.sbir-comment-form-top .comment-respond,
+.sbir-comment-form-top .comment-respond form,
+.sbir-comment-form-top .sbir-comment-form,
+.sbir-comment-form-top .comment-form-comment {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+}
+.sbir-comment-form-top .sbir-comment-input-wrap {
+    flex: 1 1 0% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+}
+.sbir-comment-form-top .sbir-comment-editor {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    white-space: pre-wrap !important;
+    writing-mode: horizontal-tb !important;
+}
+.sbir-comment-form-top::before,
+.sbir-comment-form-top::after,
+.sbir-comment-form-top .comment-respond::before,
+.sbir-comment-form-top .comment-respond::after,
+.sbir-comment-form-top .comment-form-comment::before,
+.sbir-comment-form-top .comment-form-comment::after,
+.sbir-comment-form-top .sbir-comment-input-wrap::before,
+.sbir-comment-form-top .sbir-comment-input-wrap::after {
+    content: none !important;
+    display: none !important;
+}
+.sbir-comment-form-top .sbir-comment-editor::before,
+.sbir-comment-form-top .sbir-comment-editor::after {
+    content: none !important;
+    display: none !important;
+}
+.sbir-comment-form-top .sbir-comment-editor:empty::before {
+    content: attr(data-placeholder) !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    color: var(--sbir-card-meta-color) !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    writing-mode: horizontal-tb !important;
+}
+
+#sbir-drawer .sbir-form-avatar-wrap {
+    flex-shrink: 0;
+}
+
+#sbir-drawer .sbir-form-avatar-wrap img {
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    object-fit: cover;
+}
+
+#sbir-drawer .sbir-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    background: var(--sbir-vote-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#sbir-drawer .sbir-comment-input-wrap {
+    width: 100%;
+    min-width: 0;
+}
+
+#sbir-drawer .sbir-comment-textarea {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 64px;
+    padding: 4px 0;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--sbir-foreground);
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    display: none;
+}
+
+#sbir-drawer .sbir-comment-textarea::placeholder {
+    color: var(--sbir-card-meta-color);
+}
+
+#sbir-drawer .sbir-comment-editor {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    padding: 4px 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--sbir-foreground);
+    outline: none;
+    border: none;
+    background: transparent;
+    /* word-break: normal + overflow-wrap: anywhere prevents character-per-line
+     * collapse when a parent flex item has content-based sizing. */
+    word-break: normal;
+    overflow-wrap: anywhere;
+}
+
+#sbir-drawer .sbir-comment-editor:empty:before {
+    content: attr(data-placeholder);
+    color: var(--sbir-card-meta-color);
+}
+
+#sbir-drawer .sbir-hidden-textarea {
+    display: none !important;
+}
+
+/* Main toolbar - direct child of card */
+#sbir-drawer .sbir-comment-form-card > .sbir-comment-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--sbir-comment-toolbar-bg);
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+    border-radius: 0 0 16px 16px;
+}
+
+#sbir-drawer .sbir-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+#sbir-drawer .sbir-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 6px;
+    color: var(--sbir-card-meta-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 14px;
+}
+
+#sbir-drawer .sbir-toolbar-btn:hover {
+    color: var(--sbir-muted-foreground);
+}
+
+#sbir-drawer .sbir-toolbar-btn:active {
+    color: var(--sbir-foreground);
+    background: var(--sbir-border);
+}
+
+#sbir-drawer .sbir-toolbar-btn strong {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+#sbir-drawer .sbir-toolbar-btn em {
+    font-style: italic;
+    font-size: 16px;
+}
+
+#sbir-drawer .sbir-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/*
+ * Force right-alignment for discussion sort toggle + form toolbar submit.
+ * Some themes (e.g. Colibri) apply text-align/flex rules on content wrappers
+ * that prevent justify-content: space-between from landing the right group
+ * at the far edge. margin-left: auto guarantees the behavior regardless.
+ */
+.sbir-discussion-header .sbir-comment-sort,
+.sbir-comment-form-card .sbir-toolbar-right,
+#sbir-drawer .sbir-discussion-header .sbir-comment-sort,
+#sbir-drawer .sbir-comment-form-card .sbir-toolbar-right {
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+}
+
+#sbir-drawer .sbir-publish-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+#sbir-drawer .sbir-comment-form {
+    width: 100%;
+}
+
+#sbir-drawer .sbir-comment-form .comment-form-comment {
+    margin: 0;
+    width: 100%;
+}
+
+/* Hide the old comment field styles in drawer */
+.sbir-hidden {
+    display: none;
+}
+
+/* ============================================================
+   COMMENT LIST - Drawer styles
+   ============================================================ */
+
+#sbir-drawer .sbir-comment-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+}
+
+#sbir-drawer .sbir-comment-list > li {
+    padding: 18px 0;
+    margin: 0;
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+}
+
+#sbir-drawer .sbir-comment-list > li:first-child {
+    border-top: none;
+    padding-top: 18px;
+}
+
+/* Comment card reset */
+#sbir-drawer .sbir-comment-card {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Comment row layout */
+#sbir-drawer .sbir-comment-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+#sbir-drawer .sbir-avatar-wrap {
+    flex-shrink: 0;
+    padding: 0;
+}
+
+#sbir-drawer .sbir-comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    object-fit: cover;
+}
+
+#sbir-drawer .sbir-comment-main {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Comment header with author/time and menu */
+#sbir-drawer .sbir-comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+#sbir-drawer .sbir-comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sbir-drawer .sbir-author-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sbir-foreground);
+}
+
+#sbir-drawer .sbir-author-name::after {
+    display: none;
+}
+
+#sbir-drawer .sbir-comment-time {
+    font-size: 13px;
+    color: var(--sbir-card-meta-color);
+}
+
+/* Comment content */
+#sbir-drawer .sbir-comment-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--sbir-foreground);
+    margin: 0 0 10px 0;
+}
+
+#sbir-drawer .sbir-comment-content p {
+    margin: 0;
+}
+
+/* Comment actions (like, reply) */
+#sbir-drawer .sbir-comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 0;
+}
+
+#sbir-drawer .sbir-comment-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--sbir-muted-foreground);
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+#sbir-drawer .sbir-comment-like:hover {
+    color: var(--sbir-primary);
+}
+
+#sbir-drawer .sbir-comment-like[aria-pressed="true"] {
+    color: var(--sbir-primary);
+}
+
+#sbir-drawer .sbir-like-icon {
+    width: 18px;
+    height: 18px;
+}
+
+#sbir-drawer .sbir-like-count {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#sbir-drawer .sbir-comment-reply {
+    display: inline-flex;
+}
+
+#sbir-drawer .sbir-comment-reply a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sbir-muted-foreground);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+#sbir-drawer .sbir-comment-reply a:hover {
+    color: var(--sbir-primary);
+}
+
+#sbir-drawer .sbir-reply-label {
+    font-size: 14px;
+}
+
+/* Three-dot menu */
+#sbir-drawer .sbir-comment-menu-wrap {
+    position: relative;
+    margin-left: auto;
+}
+
+#sbir-drawer .sbir-comment-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--sbir-card-meta-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+#sbir-drawer .sbir-comment-menu:hover {
+    background: var(--sbir-muted);
+    color: var(--sbir-muted-foreground);
+}
+
+#sbir-drawer .sbir-comment-menu:active {
+    background: var(--sbir-border);
+    color: var(--sbir-foreground);
+}
+
+#sbir-drawer .sbir-comment-menu-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    padding: 4px;
+    min-width: 120px;
+    display: none;
+    z-index: 1000;
+}
+
+#sbir-drawer .sbir-comment-menu-wrap.open .sbir-comment-menu-popover {
+    display: block;
+}
+
+#sbir-drawer .sbir-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--sbir-foreground);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#sbir-drawer .sbir-menu-item:hover {
+    background: var(--sbir-muted);
+}
+
+/* Nested comments / replies */
+#sbir-drawer .sbir-comment-list .children {
+    list-style: none;
+    margin: 12px 0 0 48px;
+    padding: 0;
+}
+
+#sbir-drawer .sbir-comment-list .children > li {
+    padding: 12px 0;
+    margin: 0;
+    border-top: none;
+}
+
+#sbir-drawer .sbir-comment-list .children > li:first-child {
+    padding-top: 0;
+}
+
+#sbir-drawer .sbir-comment-list .children .sbir-comment-avatar {
+    width: 32px;
+    height: 32px;
+}
+
+/* Reply form styling in drawer */
+#sbir-drawer .sbir-comment-list .comment-respond,
+#sbir-drawer .sbir-comment-list #respond {
+    margin: 16px 0 0 48px !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+#sbir-drawer .sbir-comment-list .children .comment-respond,
+#sbir-drawer .sbir-comment-list .children #respond {
+    margin-left: 44px !important;
+}
+
+/* Hide reply title */
+#sbir-drawer #reply-title,
+#sbir-drawer .comment-reply-title {
+    display: none !important;
+}
+
+/* Inline reply form - matches main form design */
+#sbir-drawer .sbir-inline-reply {
+    margin: 12px 0 0 0;
+}
+
+#sbir-drawer .sbir-reply-form-card {
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: var(--sbir-radius, 12px);
+    overflow: hidden;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-comment-form-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px 10px 16px;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-form-avatar-wrap {
+    flex-shrink: 0;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-form-avatar-wrap img {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    background: #8b5cf6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+#sbir-drawer .sbir-inline-reply form {
+    flex: 1;
+    min-width: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-comment-textarea {
+    min-height: 40px;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-comment-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--sbir-comment-toolbar-bg);
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+    border-radius: 0 0 12px 12px;
+}
+
+#sbir-drawer .sbir-comment-toolbar .sbir-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+#sbir-drawer .sbir-inline-reply .sbir-cancel-reply {
+    padding: 8px 14px;
+    font-size: 13px;
+    margin-right: 8px;
+}
+
+#sbir-drawer .sbir-inline-edit {
+    background: var(--sbir-drawer-surface-bg);
+    border: 1px solid var(--sbir-border);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+#sbir-drawer .sbir-inline-edit .sbir-textarea {
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--sbir-drawer-surface-bg);
+    color: var(--sbir-foreground);
+    resize: vertical;
+}
+
+#sbir-drawer .sbir-inline-edit .sbir-comment-toolbar {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--sbir-comment-toolbar-bg);
+    border-top: 1px solid var(--sbir-drawer-divider-color);
+    border-radius: 6px;
+}
+
+/* No comments message */
+#sbir-drawer .sbir-no-comments {
+    text-align: center;
+    color: var(--sbir-card-meta-color);
+    font-size: 14px;
+    padding: 24px 0;
+}
+
+/* Remove old drawer styling conflicts */
+#sbir-drawer .sbir-item-single.sbir-drawer-blend {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Reset any theme h1 styling inside drawer */
+#sbir-drawer h1.sbir-drawer-title {
+    all: unset;
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+    box-sizing: border-box;
+}
+
+#sbir-drawer .sbir-drawer-title .sbir-edit-title,
+#sbir-drawer .sbir-drawer-title .sbir-display-title {
+    box-sizing: border-box;
+    max-width: 100%;
+}
