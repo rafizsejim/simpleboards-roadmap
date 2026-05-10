@@ -177,10 +177,10 @@ class SBIR_Settings {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('SimpleBoards Settings', 'simpleboards-roadmap'); ?></h1>
-            
-            <h2 class="nav-tab-wrapper">
+        <div class="wrap sbir-settings-page">
+            <h1 class="sbir-settings-title"><?php esc_html_e('SimpleBoards Settings', 'simpleboards-roadmap'); ?></h1>
+
+            <h2 class="nav-tab-wrapper sbir-settings-nav">
                 <a href="?page=sbir-settings&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
                     <?php esc_html_e('General', 'simpleboards-roadmap'); ?>
                 </a>

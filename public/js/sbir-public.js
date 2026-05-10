@@ -255,7 +255,7 @@
             var $item = $(this);
             var itemCategories = [];
 
-            $item.find('.sbir-idea-meta .sbir-category').each(function() {
+            $item.find('.sbir-idea-categories .sbir-category').each(function() {
                 var label = $.trim($(this).text());
                 var value = slugifyFilterLabel(label);
                 if (!value) {
@@ -1018,6 +1018,22 @@
             sbirRunDrawerAutosave($('#sbir-drawer'));
         });
 
+        // Close any open guest-subscribe panel when clicking outside it.
+        $(document).on('mousedown.sbirSubscribeOutside', function(e) {
+            var $target = $(e.target);
+            // Click inside any subscribe widget? Leave the panel as-is.
+            if ($target.closest('.sbir-subscribe').length) {
+                return;
+            }
+            $('.sbir-subscribe-guest').not('[hidden]').prop('hidden', true);
+        });
+        // Escape closes an open guest-subscribe panel too.
+        $(document).on('keydown.sbirSubscribeEsc', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                $('.sbir-subscribe-guest').not('[hidden]').prop('hidden', true);
+            }
+        });
+
         // Subscribe button (logged-in toggle / guest reveals email field)
         $(document).on('click', '.sbir-subscribe-btn', function(e) {
             e.preventDefault();
@@ -1261,7 +1277,7 @@
             var $host = sbirGetDrawerHost($source);
             var $drawer = $('#sbir-drawer');
             if(!$drawer.length){
-                $drawer = $('<div id="sbir-drawer" class="sbir-drawer" aria-modal="true" role="dialog"><div class="sbir-drawer-overlay"></div><div class="sbir-drawer-panel"><button class="sbir-drawer-close" aria-label="' + t('close', 'Close') + '">×</button><div class="sbir-drawer-content"></div></div></div>');
+                $drawer = $('<div id="sbir-drawer" class="sbir-drawer" aria-modal="true" role="dialog"><div class="sbir-drawer-overlay"></div><div class="sbir-drawer-panel"><button class="sbir-drawer-close" aria-label="' + t('close', 'Close') + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button><div class="sbir-drawer-content"></div></div></div>');
                 // Always append drawer to <body> so it escapes any theme-created
                 // stacking context (transform/filter/position on wrappers like
                 // Colibri's fixed header). Theme styling is still synced via

@@ -39,11 +39,13 @@ if (!empty($idea_ids)) {
                 $categories_by_item[$item_id][$term_id] = array(
                     'term_id' => $term_id,
                     'name' => isset($term_link->name) ? $term_link->name : '',
+                    'color' => (string) get_term_meta($term_id, '_sbir_category_color', true),
                 );
                 if (!isset($category_counts[$term_id])) {
                     $category_counts[$term_id] = array(
                         'term_id' => $term_id,
                         'name' => isset($term_link->name) ? $term_link->name : '',
+                        'color' => (string) get_term_meta($term_id, '_sbir_category_color', true),
                         'count' => 0,
                     );
                 }
@@ -132,6 +134,21 @@ if ($ideas_per_page < 1) {
                         </div>
 
                         <div class="sbir-idea-content">
+                            <?php if (!empty($item_categories)) : ?>
+                                <div class="sbir-idea-categories">
+                                    <?php foreach ($item_categories as $cat) :
+                                        $cat_color = isset($cat['color']) ? (string) $cat['color'] : '';
+                                        $cat_attrs = '';
+                                        $cat_class = 'sbir-category';
+                                        if ($cat_color !== '') {
+                                            $cat_attrs = ' style="--sbir-cat-color: ' . esc_attr($cat_color) . ';"';
+                                            $cat_class .= ' sbir-category--colored';
+                                        }
+                                    ?>
+                                        <span class="<?php echo esc_attr($cat_class); ?>"<?php echo $cat_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html(isset($cat['name']) ? $cat['name'] : ''); ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                             <div class="sbir-idea-header">
                                 <h3 class="sbir-idea-title">
                                     <a class="sbir-open-drawer" href="<?php echo esc_url($item_permalink); ?>" data-item-id="<?php echo esc_attr($item_id); ?>"><?php echo esc_html($item_title); ?></a>
@@ -139,14 +156,8 @@ if ($ideas_per_page < 1) {
                                 <span class="sbir-idea-number">#<?php echo esc_html(sbir_get_item_number($item_id)); ?></span>
                             </div>
 
-                            <div class="sbir-idea-description"><?php echo esc_html($summary); ?></div>
-
-                            <?php if (!empty($item_categories)) : ?>
-                                <div class="sbir-idea-meta">
-                                    <?php foreach ($item_categories as $cat) : ?>
-                                        <span class="sbir-category"><?php echo esc_html(isset($cat['name']) ? $cat['name'] : ''); ?></span>
-                                    <?php endforeach; ?>
-                                </div>
+                            <?php if ($summary !== '') : ?>
+                                <div class="sbir-idea-description"><?php echo esc_html($summary); ?></div>
                             <?php endif; ?>
                             <?php sbir_render_item_meta($item_id); ?>
                         </div>
@@ -240,8 +251,16 @@ if ($ideas_per_page < 1) {
             <h4 class="sbir-widget-title"><?php esc_html_e('Categories in this view', 'simpleboards-roadmap'); ?></h4>
             <?php if (!empty($category_counts)) : ?>
                 <div class="sbir-widget-categories">
-                    <?php foreach ($category_counts as $cat_row) : ?>
-                        <span class="sbir-category">
+                    <?php foreach ($category_counts as $cat_row) :
+                        $cat_color = isset($cat_row['color']) ? (string) $cat_row['color'] : '';
+                        $cat_attrs = '';
+                        $cat_class = 'sbir-category';
+                        if ($cat_color !== '') {
+                            $cat_attrs = ' style="--sbir-cat-color: ' . esc_attr($cat_color) . ';"';
+                            $cat_class .= ' sbir-category--colored';
+                        }
+                    ?>
+                        <span class="<?php echo esc_attr($cat_class); ?>"<?php echo $cat_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
                             <?php echo esc_html(isset($cat_row['name']) ? $cat_row['name'] : ''); ?>
                             <span class="sbir-widget-count"><?php echo esc_html((int) $cat_row['count']); ?></span>
                         </span>
@@ -267,7 +286,7 @@ $categories_available = !is_wp_error($categories) && !empty($categories);
 <div class="sbir-idea-modal" aria-hidden="true">
     <div class="sbir-modal-overlay"></div>
     <div class="sbir-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sbir-idea-modal-title">
-        <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>">×</button>
+        <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>"><?php echo sbir_get_svg_icon('x', array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
         <h3 id="sbir-idea-modal-title" class="sbir-modal-title"><?php echo esc_html($form_title); ?></h3>
         <?php if ($form_description) : ?>
             <p class="sbir-form-description"><?php echo esc_html($form_description); ?></p>

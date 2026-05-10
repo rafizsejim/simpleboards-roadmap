@@ -377,7 +377,7 @@ class SBIR_Subscriptions {
                 data-item-id="<?php echo esc_attr((string) $item_id); ?>"
                 aria-pressed="<?php echo $is_subscribed ? 'true' : 'false'; ?>"
             >
-                <span class="sbir-subscribe-icon" aria-hidden="true">🔔</span>
+                <span class="sbir-subscribe-icon" aria-hidden="true"><?php echo sbir_get_svg_icon('bell', array('class' => 'sbir-subscribe-bell', 'width' => '15', 'height' => '15')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
                 <span class="sbir-subscribe-label"><?php echo $is_subscribed
                     ? esc_html__('Subscribed', 'simpleboards-roadmap')
                     : esc_html__('Subscribe', 'simpleboards-roadmap'); ?></span>

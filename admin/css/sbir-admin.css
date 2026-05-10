@@ -154,3 +154,289 @@
 .sbir-add-board-page .sbir-board-tab-panels .sbir-board-tab-panel.active {
     display: block;
 }
+
+/* ==========================================================================
+   MODERN ADMIN SURFACES — Settings, Add/Edit Board, Add/Edit Item
+   Scoped under three wrapper classes so nothing leaks into other admin
+   screens. The `:is()` selector keeps every rule shared across the three
+   surfaces without copy-paste.
+   ========================================================================== */
+
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) {
+    --sbir-set-bg: #ffffff;
+    --sbir-set-border: #e5e7eb;
+    --sbir-set-divider: #f1f5f9;
+    --sbir-set-foreground: #111827;
+    --sbir-set-muted: #6b7280;
+    --sbir-set-primary: #2563eb;
+    --sbir-set-primary-hover: #1d4ed8;
+    --sbir-set-radius: 12px;
+    --sbir-set-input-radius: 8px;
+    /* Give the page real breathing room — WP's .wrap defaults to 2px left
+     * margin, which makes the card sit on the screen edge. */
+    max-width: 1100px;
+    margin-top: 12px;
+    padding: 0 12px 32px;
+}
+
+/* Page title */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) .sbir-settings-title {
+    margin: 16px 0 4px;
+    padding: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--sbir-set-foreground);
+}
+
+/* Tab nav — replace WP's bottom-bordered tabs with a flat underline-active row. */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs).nav-tab-wrapper {
+    margin: 12px 0 24px;
+    padding: 0;
+    border-bottom: 1px solid var(--sbir-set-border);
+    background: transparent;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab {
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin: 0 4px -1px 0;
+    padding: 10px 14px;
+    border-radius: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sbir-set-muted);
+    transition: color 0.15s ease, border-color 0.15s ease;
+    box-shadow: none;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab:hover,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab:focus {
+    color: var(--sbir-set-foreground);
+    background: transparent;
+    border-bottom-color: transparent;
+    box-shadow: none;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab-active,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab-active:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) :is(.sbir-settings-nav, .sbir-board-setup-tabs) .nav-tab-active:hover {
+    color: var(--sbir-set-primary);
+    border-bottom-color: var(--sbir-set-primary);
+    background: transparent;
+}
+
+/* form-table → card section
+ * NOTE: padding lives on the cells, not on the <table>. Browsers
+ * inconsistently apply padding to a <table> element (and `width: 100%`
+ * + content-box on a table makes the cells render flush against the
+ * border anyway). Putting horizontal padding on TH/TD is the reliable
+ * way to push label + input content away from the card edges. */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table {
+    background: var(--sbir-set-bg);
+    border: 1px solid var(--sbir-set-border);
+    border-radius: var(--sbir-set-radius);
+    margin: 0 0 16px;
+    padding: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table tr {
+    border-bottom: 1px solid var(--sbir-set-divider);
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table tr:last-child {
+    border-bottom: 0;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table th {
+    padding: 22px 16px 22px 28px;
+    width: 220px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sbir-set-foreground);
+    line-height: 1.45;
+    vertical-align: top;
+    text-align: left;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table td {
+    padding: 22px 28px 22px 0;
+    color: var(--sbir-set-foreground);
+    vertical-align: top;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table .description,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table p.description {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--sbir-set-muted);
+}
+/* Inline help that follows a label */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label {
+    font-size: 13px;
+    color: var(--sbir-set-foreground);
+    line-height: 1.5;
+}
+
+/* Modern input controls */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="text"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="email"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="url"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="number"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="password"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="search"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table select,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea {
+    border: 1px solid #d1d5db;
+    border-radius: var(--sbir-set-input-radius);
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: none;
+    background: #fff;
+    color: var(--sbir-set-foreground);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="text"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="email"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="url"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="number"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="password"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="search"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table select:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea:focus {
+    border-color: var(--sbir-set-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    outline: none;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea {
+    min-height: 96px;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
+/* Slide-toggle for boolean checkboxes — Linear-ish proportions.
+ * Track 32×18, knob 14×14. Underlying <input type="checkbox"> still posts
+ * checked/unchecked unchanged.
+ *
+ * NOTE: !important is used aggressively here because WP admin CSS draws
+ * its OWN checkmark glyph via `input[type="checkbox"]:checked::before
+ * { content: url(...) }`. Without overriding `content` AND
+ * `background-image` on every state, the WP checkmark renders INSIDE
+ * our knob and produces a "donut" appearance. */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    position: relative !important;
+    width: 32px !important;
+    height: 18px !important;
+    margin: 0 12px 0 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #d1d5db !important;
+    background-image: none !important;
+    background-color: #d1d5db !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    vertical-align: middle !important;
+    transition: background-color 0.2s ease !important;
+    flex-shrink: 0 !important;
+    min-height: 18px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    width: 14px !important;
+    height: 14px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    background-image: none !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.20) !important;
+    transition: transform 0.2s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    /* Reset any WP-drawn checkmark mask/clip-path */
+    -webkit-mask: none !important;
+    mask: none !important;
+    clip-path: none !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]::after {
+    /* Some WP versions draw the checkmark via ::after instead of ::before.
+     * Suppress it entirely. */
+    content: none !important;
+    display: none !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:hover {
+    background: #b8c0cd !important;
+    background-color: #b8c0cd !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked {
+    background: var(--sbir-set-primary) !important;
+    background-image: none !important;
+    background-color: var(--sbir-set-primary) !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked:hover {
+    background: var(--sbir-set-primary-hover) !important;
+    background-color: var(--sbir-set-primary-hover) !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked::before {
+    /* Critical: re-declare content:'' so WP's checkmark URL doesn't render. */
+    content: '' !important;
+    background: #ffffff !important;
+    background-image: none !important;
+    transform: translateX(14px) !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked::after {
+    content: none !important;
+    display: none !important;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28) !important;
+}
+/* Keep the checkbox label readable next to the toggle. */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label > input[type="checkbox"] {
+    margin-right: 0;
+}
+
+/* Submit button: rounded, no WP shadow/text-shadow, primary token color. */
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit {
+    padding: 8px 0 0;
+    margin: 16px 0 0;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit .button-primary,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit input[type="submit"].button-primary {
+    background: var(--sbir-set-primary);
+    border-color: var(--sbir-set-primary);
+    color: #ffffff;
+    border-radius: var(--sbir-set-input-radius);
+    padding: 0 18px;
+    height: 38px;
+    line-height: 38px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+    text-shadow: none;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit .button-primary:hover,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit input[type="submit"].button-primary:hover,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit .button-primary:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form p.submit input[type="submit"].button-primary:focus {
+    background: var(--sbir-set-primary-hover);
+    border-color: var(--sbir-set-primary-hover);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}

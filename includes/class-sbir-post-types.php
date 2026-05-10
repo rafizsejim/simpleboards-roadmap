@@ -282,6 +282,12 @@ class SBIR_Post_Types {
         add_action('sbir_status_edit_form_fields', array($this, 'status_edit_fields'));
         add_action('created_sbir_status', array($this, 'save_status_fields'));
         add_action('edited_sbir_status', array($this, 'save_status_fields'));
+
+        // Categories: same Board + Color contract as statuses.
+        add_action('sbir_category_add_form_fields', array($this, 'category_add_fields'));
+        add_action('sbir_category_edit_form_fields', array($this, 'category_edit_fields'));
+        add_action('created_sbir_category', array($this, 'save_category_fields'));
+        add_action('edited_sbir_category', array($this, 'save_category_fields'));
     }
 
     public function status_add_fields() {
@@ -412,6 +418,96 @@ class SBIR_Post_Types {
                 update_term_meta($term_id, '_sbir_status_color', $color);
             } else {
                 delete_term_meta($term_id, '_sbir_status_color');
+            }
+        }
+    }
+
+    /**
+     * Render Add Category form fields (Board + Color).
+     */
+    public function category_add_fields() {
+        $boards = sbir_get_boards_list(200);
+        ?>
+        <div class="form-field">
+            <?php wp_nonce_field('sbir_save_category_fields', 'sbir_category_nonce'); ?>
+            <label for="sbir_category_board"><?php esc_html_e('Belongs to Board', 'simpleboards-roadmap'); ?></label>
+            <select name="sbir_category_board" id="sbir_category_board">
+                <option value=""><?php esc_html_e('All Boards (global)', 'simpleboards-roadmap'); ?></option>
+                <?php foreach ($boards as $board) : ?>
+                    <option value="<?php echo esc_attr($board->ID); ?>"><?php echo esc_html($board->post_title); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="description"><?php esc_html_e('Associate this category with a specific board (optional).', 'simpleboards-roadmap'); ?></p>
+        </div>
+        <div class="form-field">
+            <label for="sbir_category_color"><?php esc_html_e('Category Color', 'simpleboards-roadmap'); ?></label>
+            <input type="color" name="sbir_category_color" id="sbir_category_color" value="#94a3b8" />
+            <p class="description"><?php esc_html_e('Choose the color shown for this category chip on cards.', 'simpleboards-roadmap'); ?></p>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render Edit Category form fields (Board + Color).
+     */
+    public function category_edit_fields($term) {
+        $boards = $this->get_boards_for_status_fields();
+        $value = get_term_meta($term->term_id, '_sbir_category_board', true);
+        $color = get_term_meta($term->term_id, '_sbir_category_color', true);
+        ?>
+        <tr class="form-field">
+            <th scope="row"><label for="sbir_category_board"><?php esc_html_e('Belongs to Board', 'simpleboards-roadmap'); ?></label></th>
+            <td>
+                <?php wp_nonce_field('sbir_save_category_fields', 'sbir_category_nonce'); ?>
+                <select name="sbir_category_board" id="sbir_category_board">
+                    <option value=""><?php esc_html_e('All Boards (global)', 'simpleboards-roadmap'); ?></option>
+                    <?php foreach ($boards as $board) : ?>
+                        <option value="<?php echo esc_attr($board->ID); ?>" <?php selected($value, $board->ID); ?>><?php echo esc_html($board->post_title); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="description"><?php esc_html_e('Associate this category with a specific board (optional).', 'simpleboards-roadmap'); ?></p>
+            </td>
+        </tr>
+        <tr class="form-field">
+            <th scope="row"><label for="sbir_category_color"><?php esc_html_e('Category Color', 'simpleboards-roadmap'); ?></label></th>
+            <td>
+                <input type="color" name="sbir_category_color" id="sbir_category_color" value="<?php echo esc_attr($color ? $color : '#94a3b8'); ?>" />
+                <p class="description"><?php esc_html_e('Choose the color shown for this category chip on cards.', 'simpleboards-roadmap'); ?></p>
+            </td>
+        </tr>
+        <?php
+    }
+
+    /**
+     * Persist Category Board + Color meta.
+     */
+    public function save_category_fields($term_id) {
+        $term_id = absint($term_id);
+        if (!$term_id) {
+            return;
+        }
+        $tax_obj = get_taxonomy('sbir_category');
+        $manage_cap = is_object($tax_obj) && isset($tax_obj->cap->manage_terms) ? $tax_obj->cap->manage_terms : 'manage_categories';
+        if (!current_user_can($manage_cap)) {
+            return;
+        }
+        if (!isset($_POST['sbir_category_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['sbir_category_nonce'])), 'sbir_save_category_fields')) {
+            return;
+        }
+
+        $new_board_id = isset($_POST['sbir_category_board']) ? absint(wp_unslash($_POST['sbir_category_board'])) : 0;
+        if ($new_board_id) {
+            update_term_meta($term_id, '_sbir_category_board', $new_board_id);
+        } else {
+            delete_term_meta($term_id, '_sbir_category_board');
+        }
+
+        if (isset($_POST['sbir_category_color'])) {
+            $color = sanitize_hex_color(wp_unslash($_POST['sbir_category_color']));
+            if ($color) {
+                update_term_meta($term_id, '_sbir_category_color', $color);
+            } else {
+                delete_term_meta($term_id, '_sbir_category_color');
             }
         }
     }

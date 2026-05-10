@@ -243,7 +243,7 @@ if ($current_status_obj) {
     <div class="sbir-roadmap-modal sbir-move-modal" aria-hidden="true">
         <div class="sbir-modal-overlay"></div>
         <div class="sbir-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sbir-move-modal-title">
-            <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>">×</button>
+            <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>"><?php echo sbir_get_svg_icon('x', array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
             <h3 id="sbir-move-modal-title" class="sbir-modal-title"><?php esc_html_e('Move to Roadmap', 'simpleboards-roadmap'); ?></h3>
             <form class="sbir-move-roadmap-form">
                 <input type="hidden" name="item_id" value="<?php echo esc_attr($item_id); ?>">

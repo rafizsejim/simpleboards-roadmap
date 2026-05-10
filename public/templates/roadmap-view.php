@@ -123,30 +123,53 @@ $render_kanban_item = static function($item, $status_slug, $board_id) {
         return;
     }
     $created_ts = (int) get_post_time('U', true, $item->ID);
+
+    // Category chips move to the top of the card as the visual anchor.
+    $categories = get_the_terms($item->ID, 'sbir_category');
+    $has_categories = $categories && !is_wp_error($categories);
+
+    // Skip the excerpt block entirely when there's no body content (avoids
+    // the dead vertical space that made empty cards taller than necessary).
+    $excerpt_text = '';
+    if ($item->post_excerpt) {
+        $excerpt_text = $item->post_excerpt;
+    } else {
+        $stripped = trim(wp_strip_all_tags((string) $item->post_content));
+        if ($stripped !== '') {
+            $excerpt_text = wp_trim_words($stripped, 18);
+        }
+    }
     ?>
     <a class="sbir-kanban-item" href="<?php echo esc_url(get_permalink($item->ID)); ?>" data-item-id="<?php echo esc_attr($item->ID); ?>" data-status="<?php echo esc_attr($status_slug); ?>" data-created-ts="<?php echo esc_attr($created_ts); ?>">
-        <div class="sbir-card-header">
-            <div class="sbir-card-title">
-                <span class="sbir-card-number">#<?php echo esc_html(sbir_get_item_number($item->ID)); ?></span>
-                <h4 class="sbir-item-title"><?php echo esc_html($item->post_title); ?></h4>
+        <div class="sbir-card-top">
+            <div class="sbir-card-top-left">
+                <?php if ($has_categories) : ?>
+                    <?php foreach ($categories as $cat) :
+                        $cat_color = get_term_meta((int) $cat->term_id, '_sbir_category_color', true);
+                        $cat_attrs = '';
+                        $cat_class = 'sbir-chip';
+                        if ($cat_color) {
+                            $cat_attrs = ' style="--sbir-cat-color: ' . esc_attr($cat_color) . ';"';
+                            $cat_class .= ' sbir-chip--colored';
+                        }
+                    ?>
+                        <span class="<?php echo esc_attr($cat_class); ?>"<?php echo $cat_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html($cat->name); ?></span>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
-            <div class="sbir-kanban-vote" aria-label="Votes" onclick="return false;">
-                <?php sbir_render_vote_button($item->ID); ?>
+            <div class="sbir-card-top-right">
+                <div class="sbir-kanban-vote" aria-label="<?php esc_attr_e('Votes', 'simpleboards-roadmap'); ?>" onclick="return false;">
+                    <?php sbir_render_vote_button($item->ID); ?>
+                </div>
             </div>
         </div>
-        <?php if ($item->post_excerpt) : ?>
-            <p class="sbir-item-excerpt"><?php echo esc_html($item->post_excerpt); ?></p>
-        <?php else : ?>
-            <p class="sbir-item-excerpt"><?php echo esc_html(wp_trim_words($item->post_content, 18)); ?></p>
+        <div class="sbir-card-title-wrap">
+            <span class="sbir-card-number">#<?php echo esc_html(sbir_get_item_number($item->ID)); ?></span>
+            <h4 class="sbir-item-title"><?php echo esc_html($item->post_title); ?></h4>
+        </div>
+        <?php if ($excerpt_text !== '') : ?>
+            <p class="sbir-item-excerpt"><?php echo esc_html($excerpt_text); ?></p>
         <?php endif; ?>
-        <?php
-            $categories = get_the_terms($item->ID, 'sbir_category');
-            if ($categories && !is_wp_error($categories)) {
-                foreach ($categories as $cat) {
-                    echo '<span class="sbir-chip">' . esc_html($cat->name) . '</span>';
-                }
-            }
-        ?>
         <?php do_action('sbir_render_item_card_progress', (int) $item->ID, (int) $board_id); ?>
         <?php sbir_render_item_meta($item->ID); ?>
     </a>
@@ -228,7 +251,7 @@ $render_kanban_item = static function($item, $status_slug, $board_id) {
     <div class="sbir-roadmap-modal" aria-hidden="true">
         <div class="sbir-modal-overlay"></div>
         <div class="sbir-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sbir-roadmap-modal-title">
-            <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>">×</button>
+            <button type="button" class="sbir-modal-close" aria-label="<?php esc_attr_e('Close', 'simpleboards-roadmap'); ?>"><?php echo sbir_get_svg_icon('x', array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
             <h3 id="sbir-roadmap-modal-title" class="sbir-modal-title"><?php esc_html_e('Add Roadmap Item', 'simpleboards-roadmap'); ?></h3>
             <form class="sbir-roadmap-form">
                 <input type="hidden" name="board_id" value="<?php echo esc_attr($board_id); ?>">

@@ -121,6 +121,16 @@ $can_post_comment = comments_open() && !$requires_login;
                         . '<label for="email">' . esc_html__('Email', 'simpleboards-roadmap') . ' <span class="required">*</span></label> '
                         . '<input id="email" name="email" type="email" value="' . esc_attr($commenter_data['comment_author_email']) . '" autocomplete="email" required />'
                         . '</p>';
+                    if ((bool) get_option('show_comments_cookies_opt_in')) {
+                        $sbir_consent_checked = !empty($commenter_data['comment_author_email']);
+                        // Render our cookies consent INSIDE the fields array so it
+                        // is the only one comment_form() emits. Suppresses WP's
+                        // default consent and any theme-injected duplicate.
+                        $sbir_guest_fields['cookies'] = '<p class="comment-form-cookies-consent sbir-comment-consent">'
+                            . '<input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes"' . ($sbir_consent_checked ? ' checked="checked"' : '') . ' />'
+                            . '<label for="wp-comment-cookies-consent">' . esc_html__('Save my name and email in this browser for the next time I comment.', 'simpleboards-roadmap') . '</label>'
+                            . '</p>';
+                    }
                 }
 
                 comment_form(array(
@@ -153,16 +163,6 @@ $can_post_comment = comments_open() && !$requires_login;
                     <button type="submit" form="commentform" class="sbir-btn sbir-btn-primary sbir-publish-btn"><?php esc_html_e('Publish', 'simpleboards-roadmap'); ?></button>
                 </div>
             </div>
-            <?php
-            if (!is_user_logged_in() && (bool) get_option('show_comments_cookies_opt_in')) :
-                $commenter = wp_get_current_commenter();
-                $consent_checked = !empty($commenter['comment_author_email']);
-                ?>
-                <p class="comment-form-cookies-consent sbir-comment-consent">
-                    <input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes" form="commentform"<?php checked($consent_checked); ?>>
-                    <label for="wp-comment-cookies-consent"><?php esc_html_e('Save my name and email in this browser for the next time I comment.', 'simpleboards-roadmap'); ?></label>
-                </p>
-            <?php endif; ?>
         <?php else : ?>
             <div class="sbir-comment-form-top">
                 <p class="sbir-notice">
