@@ -760,6 +760,13 @@
             if ($list.hasClass('ui-sortable')) {
                 $list.sortable('destroy');
             }
+            // Cache the source item's height once at drag start. Re-measuring
+            // `ui.item.outerHeight()` after the item lands in a different
+            // column gives a DIFFERENT value, because column widths / paddings
+            // change the item's wrapping and rendered height. Caching ensures
+            // the placeholder is the SAME size in every column for the whole
+            // drag, which is what users expect.
+            var sbirDragSourceHeight = 0;
             $list.sortable({
                 connectWith: '.sbir-kanban-items',
                 placeholder: 'sbir-sortable-placeholder',
@@ -768,20 +775,26 @@
                 items: '> .sbir-kanban-item',
                 dropOnEmpty: true,
                 start: function(event, ui) {
-                    ui.placeholder.height(ui.item.outerHeight());
+                    sbirDragSourceHeight = ui.item.outerHeight();
+                    ui.placeholder.height(sbirDragSourceHeight);
                 },
                 // jQuery UI sets placeholder height once in `start`, but when
-                // the placeholder is reparented into a connected list (i.e.
-                // dragged into a different column) the explicit height is
-                // dropped and it collapses to a thin line. Re-apply on `over`
-                // (entering a list) and `change` (sort order shift) so the
-                // drop-zone box stays visible in every column, not just the
-                // source one.
+                // the placeholder is reparented into a connected list the
+                // explicit height is dropped and it collapses to a thin line.
+                // Re-apply the CACHED source height on `over` and `change` so
+                // every column shows an identically-sized drop zone.
                 over: function(event, ui) {
-                    ui.placeholder.height(ui.item.outerHeight());
+                    if (sbirDragSourceHeight) {
+                        ui.placeholder.height(sbirDragSourceHeight);
+                    }
                 },
                 change: function(event, ui) {
-                    ui.placeholder.height(ui.item.outerHeight());
+                    if (sbirDragSourceHeight) {
+                        ui.placeholder.height(sbirDragSourceHeight);
+                    }
+                },
+                stop: function() {
+                    sbirDragSourceHeight = 0;
                 },
                 receive: throttle(function(event, ui) {
                     var $item = ui.item;
