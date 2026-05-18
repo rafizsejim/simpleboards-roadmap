@@ -1692,10 +1692,11 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
             color-mix(in srgb, var(--status-color, #94a3b8) 3%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
-    border: 0;
-}
-.sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-kanban-item:hover {
-    border: 0;
+    /* Border intentionally not overridden here — defaults to the
+     * `--sbir-card-border` token (set to `transparent` in the Pulse
+     * preset). Users who want a visible border can set
+     * `card_border` / `card_hover_border` from the design settings panel
+     * and that value flows through cleanly. */
 }
 /* Pulse also tints idea cards (no per-card status color → use primary, sustained tint) */
 .sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-idea-item {
@@ -1706,7 +1707,6 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
             color-mix(in srgb, var(--sbir-primary, #6366f1) 2%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
-    border: 0;
 }
 
 /* Bold: soft-tinted card header with a status-color icon badge.
