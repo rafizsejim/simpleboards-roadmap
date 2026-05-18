@@ -121,6 +121,7 @@ if ($current_status_obj) {
         <!-- Meta Info Panel -->
         <section class="sbir-meta-panel">
             <div class="sbir-meta-grid">
+                <?php if ($is_roadmap) : /* Status only applies to roadmap items. Ideas use the "Move to Roadmap" flow to acquire one. */ ?>
                 <!-- Status -->
                 <div class="sbir-meta-item">
                     <span class="sbir-meta-label"><?php esc_html_e('Status', 'simpleboards-roadmap'); ?></span>
@@ -143,6 +144,7 @@ if ($current_status_obj) {
                         <?php endif; ?>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Category -->
                 <div class="sbir-meta-item">

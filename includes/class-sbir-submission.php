@@ -235,6 +235,15 @@ class SBIR_Submission {
             wp_send_json_error(array('message' => __('Invalid item.', 'simpleboards-roadmap')));
         }
 
+        // Read the current type BEFORE touching the post. The endpoint is
+        // historically named `sbir_update_roadmap_item` but the drawer reuses
+        // it for both roadmap items and ideas, so we must preserve whichever
+        // type the item already is. Unconditionally setting 'yes' here was
+        // silently promoting ideas to roadmap on every drawer autosave, which
+        // made them vanish from the Ideas tab. Explicit promotion lives in
+        // `handle_move_to_roadmap()`.
+        $current_is_roadmap = get_post_meta($item_id, '_sbir_is_roadmap', true) === 'yes';
+
         wp_update_post(array(
             'ID' => $item_id,
             'post_title' => $title,
@@ -245,18 +254,23 @@ class SBIR_Submission {
         if ($board_id > 0 && !sbir_current_user_can_access_board($board_id, 'update_roadmap_item')) {
             wp_send_json_error(array('message' => __('Unauthorized', 'simpleboards-roadmap')));
         }
-        update_post_meta($item_id, '_sbir_is_roadmap', 'yes');
 
-        if ($status_id) {
-            $term = get_term($status_id, 'sbir_status');
-            if ($term && !is_wp_error($term)) {
-                $belongs_to = (int) get_term_meta($term->term_id, '_sbir_status_board', true);
-                if ($belongs_to === 0 || $belongs_to === $board_id) {
-                    wp_set_object_terms($item_id, array((int) $status_id), 'sbir_status', false);
+        // Status only applies to roadmap items. For ideas, skip the term
+        // assignment entirely; the `enforce_status_only_for_roadmap` save
+        // hook would clear it anyway, but skipping the write keeps the
+        // intent explicit and saves a query.
+        if ($current_is_roadmap) {
+            if ($status_id) {
+                $term = get_term($status_id, 'sbir_status');
+                if ($term && !is_wp_error($term)) {
+                    $belongs_to = (int) get_term_meta($term->term_id, '_sbir_status_board', true);
+                    if ($belongs_to === 0 || $belongs_to === $board_id) {
+                        wp_set_object_terms($item_id, array((int) $status_id), 'sbir_status', false);
+                    }
                 }
+            } else {
+                wp_set_object_terms($item_id, array(), 'sbir_status', false);
             }
-        } else {
-            wp_set_object_terms($item_id, array(), 'sbir_status', false);
         }
 
         if ($category_id) {
