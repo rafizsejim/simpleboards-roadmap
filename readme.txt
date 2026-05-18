@@ -1,6 +1,6 @@
-=== SimpleBoards - Roadmap, Ideas Board & Feature Voting ===
+=== Roadmap & Feedback Board for WordPress - SimpleBoards ===
 Contributors: rafizsejim
-Tags: roadmap, feedback, feature requests, voting, ideas board, public roadmap, customer feedback, feedback portal, changelog, announcements, kanban, product roadmap
+Tags: roadmap, feedback, feature requests, voting, ideas board
 Requires at least: 5.0
 Tested up to: 6.8
 Stable tag: 1.0.0
@@ -8,7 +8,7 @@ Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Run a public roadmap, ideas board, and feature voting inside WordPress. Collect feedback, prioritize by votes, ship updates users can see.
+Public roadmap, ideas board, and feature voting plugin for WordPress. Collect customer feedback, prioritize by votes, ship product updates users can see.
 
 == Description ==
 
@@ -18,7 +18,7 @@ If you run a WordPress site, you already pay for hosting and you already have a 
 
 SimpleBoards puts the same workflow inside your own site. Visitors submit ideas, vote on what they want most, and watch roadmap items move from "Up Next" through "In Progress" to "Released" without ever leaving your brand.
 
-[Live demo and Pro details: simpleboardswp.com](https://simpleboardswp.com)
+[Live demo and Pro details: simpleboardswp.com](https://simpleboardswp.com/?utm_source=wp_readme&utm_medium=plugin&utm_campaign=hero_link)
 
 = Who it is built for =
 
@@ -67,10 +67,10 @@ SimpleBoards puts the same workflow inside your own site. Visitors submit ideas,
 
 = Pro add-on =
 
-[SimpleBoards Pro](https://simpleboardswp.com) adds the things teams ask for after their first month of use:
+[SimpleBoards Pro](https://simpleboardswp.com/?utm_source=wp_readme&utm_medium=plugin&utm_campaign=pro_section) adds the things teams ask for after their first month of use:
 
 * **Private boards.** Restrict by role so internal planning stays internal.
-* **Announcements tab and widget.** Publish release notes and product updates with unread badges and dismissible cards.
+* **Announcements tab and widget.** Publish a changelog of release notes and product updates with unread badges and dismissible cards.
 * **Workflow automations.** Auto-promote ideas to roadmap when a vote threshold is hit. Auto-change status when a checklist finishes. Notify by email when an item goes overdue.
 * **Checklist progress on cards.** Track sub-tasks on roadmap items with a visible progress bar.
 * **Design controls.** Layout, colors, typography, vote button shape, column width, and three preset themes (Clean Light, Midnight Glass, Aurora Soft) without writing CSS.
@@ -86,7 +86,7 @@ SimpleBoards puts the same workflow inside your own site. Visitors submit ideas,
 * Collecting community feedback on a membership site or course platform.
 * Internal product planning inside the WordPress admin for teams already living in WordPress.
 
-More info, live demo, and support: [simpleboardswp.com](https://simpleboardswp.com)
+More info, live demo, and support: [simpleboardswp.com](https://simpleboardswp.com/?utm_source=wp_readme&utm_medium=plugin&utm_campaign=footer_link)
 Email: contact@simpleboardswp.com
 
 == Installation ==
@@ -97,7 +97,7 @@ Email: contact@simpleboardswp.com
 4. Add `[sbir_board product="your-board-slug"]` to any page or post.
 5. Publish the page. Visitors can submit ideas and vote right away.
 
-For step-by-step setup with screenshots, see the [SimpleBoards documentation](https://simpleboardswp.com).
+For step-by-step setup with screenshots, see the [SimpleBoards documentation](https://simpleboardswp.com/?utm_source=wp_readme&utm_medium=plugin&utm_campaign=install_docs).
 
 == Frequently Asked Questions ==
 
@@ -147,7 +147,7 @@ Yes. Admins can be notified of new submissions. Submitters can subscribe to per-
 
 = Is there a Pro version? =
 
-Yes. Pro adds private boards, announcements, workflow automations, design controls, checklist progress, and the Torin AI assistant. See [simpleboardswp.com](https://simpleboardswp.com) for details and pricing.
+Yes. Pro adds private boards, announcements, workflow automations, design controls, checklist progress, and the Torin AI assistant. See [simpleboardswp.com](https://simpleboardswp.com/?utm_source=wp_readme&utm_medium=plugin&utm_campaign=faq_pro) for details and pricing.
 
 = Where do I get support? =
 
