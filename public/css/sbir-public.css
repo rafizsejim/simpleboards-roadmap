@@ -1692,10 +1692,10 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
             color-mix(in srgb, var(--status-color, #94a3b8) 3%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
-    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 12%, var(--sbir-card-border, #e8ecf2));
+    border: 0;
 }
 .sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-kanban-item:hover {
-    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 22%, var(--sbir-card-hover-border, #cfd5df));
+    border: 0;
 }
 /* Pulse also tints idea cards (no per-card status color → use primary, sustained tint) */
 .sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-idea-item {
@@ -1706,6 +1706,7 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
             color-mix(in srgb, var(--sbir-primary, #6366f1) 2%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
+    border: 0;
 }
 
 /* Bold: soft-tinted card header with a status-color icon badge.
