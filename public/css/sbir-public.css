@@ -1687,23 +1687,23 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     background: var(--sbir-card-bg, #ffffff);
     background:
         linear-gradient(180deg,
-            color-mix(in srgb, var(--status-color, #94a3b8) 14%, transparent) 0%,
-            color-mix(in srgb, var(--status-color, #94a3b8) 11%, transparent) 50%,
-            color-mix(in srgb, var(--status-color, #94a3b8) 8%, transparent) 100%
+            color-mix(in srgb, var(--status-color, #94a3b8) 5%, transparent) 0%,
+            color-mix(in srgb, var(--status-color, #94a3b8) 4%, transparent) 50%,
+            color-mix(in srgb, var(--status-color, #94a3b8) 3%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
-    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 16%, var(--sbir-card-border, #e8ecf2));
+    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 12%, var(--sbir-card-border, #e8ecf2));
 }
 .sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-kanban-item:hover {
-    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 30%, var(--sbir-card-hover-border, #cfd5df));
+    border-color: color-mix(in srgb, var(--status-color, #94a3b8) 22%, var(--sbir-card-hover-border, #cfd5df));
 }
 /* Pulse also tints idea cards (no per-card status color → use primary, sustained tint) */
 .sbir-board-container[data-sbirp-theme="preset-pulse"] .sbir-idea-item {
     background: var(--sbir-card-bg, #ffffff);
     background:
         linear-gradient(180deg,
-            color-mix(in srgb, var(--sbir-primary, #6366f1) 9%, transparent) 0%,
-            color-mix(in srgb, var(--sbir-primary, #6366f1) 5%, transparent) 100%
+            color-mix(in srgb, var(--sbir-primary, #6366f1) 4%, transparent) 0%,
+            color-mix(in srgb, var(--sbir-primary, #6366f1) 2%, transparent) 100%
         ),
         var(--sbir-card-bg, #ffffff);
 }
