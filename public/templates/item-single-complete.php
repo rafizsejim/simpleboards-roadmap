@@ -175,9 +175,10 @@ if ($current_status_obj) {
                     </div>
                 </div>
 
-                <!-- Due Date -->
+                <!-- Due / Released Date -->
+                <?php $is_released = sbir_item_is_released($item_id); ?>
                 <div class="sbir-meta-item">
-                    <span class="sbir-meta-label"><?php esc_html_e('Due', 'simpleboards-roadmap'); ?></span>
+                    <span class="sbir-meta-label"><?php echo $is_released ? esc_html__('Released', 'simpleboards-roadmap') : esc_html__('Due', 'simpleboards-roadmap'); ?></span>
                     <div class="sbir-meta-value <?php echo !$deadline_ts ? 'sbir-meta-muted' : ''; ?>">
                         <span class="sbir-display-value">
                             <svg class="sbir-meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
@@ -198,27 +199,42 @@ if ($current_status_obj) {
             </div>
         </section>
 
+        <?php
+        // Description section: only render when there's body content, OR the
+        // viewer can edit (so they get an empty card with a placeholder + an
+        // editable textarea). Visitors looking at an item with no description
+        // shouldn't see a thin empty bar that reads as broken.
+        $description_has_content = trim(wp_strip_all_tags((string) $post->post_content)) !== '';
+        if ($description_has_content || $can_edit) :
+        ?>
         <!-- Description Section -->
         <section class="sbir-description-section">
             <h3 class="sbir-section-label">
                 <svg class="sbir-section-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
                 <?php esc_html_e('Description', 'simpleboards-roadmap'); ?>
             </h3>
-            <div class="sbir-description-card">
+            <div class="sbir-description-card<?php echo $description_has_content ? '' : ' sbir-description-empty'; ?>">
                 <div class="sbir-display-value sbir-description-content">
-                    <?php 
-                    $post_content = $post->post_content;
-                    $post_content = wptexturize($post_content);
-                    $post_content = convert_smilies($post_content);
-                    $post_content = wpautop($post_content);
-                    echo wp_kses_post($post_content);
+                    <?php
+                    if ($description_has_content) {
+                        $post_content = $post->post_content;
+                        $post_content = wptexturize($post_content);
+                        $post_content = convert_smilies($post_content);
+                        $post_content = wpautop($post_content);
+                        echo wp_kses_post($post_content);
+                    } else {
+                        echo '<span class="sbir-description-placeholder">'
+                            . esc_html__('No description yet. Click to add one.', 'simpleboards-roadmap')
+                            . '</span>';
+                    }
                     ?>
                 </div>
                 <?php if ($can_edit) : ?>
-                    <textarea class="sbir-edit-field" name="description" rows="6"><?php echo esc_textarea($post->post_content); ?></textarea>
+                    <textarea class="sbir-edit-field" name="description" rows="6" placeholder="<?php esc_attr_e('Write a description...', 'simpleboards-roadmap'); ?>"><?php echo esc_textarea($post->post_content); ?></textarea>
                 <?php endif; ?>
             </div>
         </section>
+        <?php endif; ?>
 
         <?php do_action('sbir_render_item_drawer_extra_fields', (int) $item_id, (int) $board_id, (bool) $is_roadmap, (bool) $can_edit); ?>
 

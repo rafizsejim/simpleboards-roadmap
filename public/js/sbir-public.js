@@ -5,6 +5,82 @@
 (function($) {
     'use strict';
 
+    /**
+     * Top clearance detector.
+     * Measures the height of any non-static element pinned at the top of the
+     * viewport (theme nav: fixed / sticky / absolute) and writes the height
+     * to `--sbir-top-clearance` on <html>.
+     *
+     * The board CSS uses that variable to:
+     *   - add padding-top on .sbir-board-container so the first row of content
+     *     never lands under the theme menu on initial page load.
+     *   - apply scroll-padding-top on <html> so anchor jumps + scrollIntoView
+     *     calls land below the menu.
+     *
+     * Strategy: scan tagged header/nav elements first (cheap), then fall back
+     * to the elementsFromPoint stack at the top-center of the viewport. Walks
+     * the ancestor chain so a nav inside a wrapper still resolves correctly.
+     * Re-runs on load + resize.
+     */
+    function sbirIsNavLike(el) {
+        if (!el || el === document.documentElement || el === document.body) return false;
+        var style = window.getComputedStyle(el);
+        if (style.position === 'static') return false;
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        if (parseFloat(style.opacity) === 0) return false;
+        var rect = el.getBoundingClientRect();
+        if (rect.top > 30 || rect.bottom <= 0) return false;
+        if (rect.width < window.innerWidth * 0.2) return false;
+        return rect.bottom;
+    }
+    function sbirDetectTopClearance() {
+        var maxBottom = 0;
+        // Pass 1: scan explicit header / nav elements. Cheap and reliable.
+        var explicit = document.querySelectorAll('header, nav, [role="banner"], [role="navigation"]');
+        for (var i = 0; i < explicit.length; i++) {
+            var b = sbirIsNavLike(explicit[i]);
+            if (b && b > maxBottom) maxBottom = b;
+        }
+        // Pass 2: elementsFromPoint at top-center (also walks ancestors so
+        // a normal-flow child of a fixed nav container is detected).
+        if (typeof document.elementsFromPoint === 'function') {
+            var x = Math.max(20, Math.floor(window.innerWidth / 2));
+            var sampleYs = [5, 15, 30];
+            for (var yi = 0; yi < sampleYs.length; yi++) {
+                var stack = document.elementsFromPoint(x, sampleYs[yi]);
+                if (!stack) continue;
+                for (var j = 0; j < stack.length; j++) {
+                    var node = stack[j];
+                    while (node && node !== document.body) {
+                        var b2 = sbirIsNavLike(node);
+                        if (b2 && b2 > maxBottom) maxBottom = b2;
+                        node = node.parentElement;
+                    }
+                }
+            }
+        }
+        if (maxBottom > 200) maxBottom = 200;
+        return Math.max(0, Math.round(maxBottom));
+    }
+    function sbirApplyTopClearance() {
+        var px = sbirDetectTopClearance();
+        // Optional manual offset injected by a PHP filter
+        // (`sbir_top_clearance_extra`) for themes whose nav can't be auto-detected.
+        if (window.sbir_public && typeof window.sbir_public.top_clearance_extra === 'number') {
+            px += window.sbir_public.top_clearance_extra;
+        }
+        // Add a small visual gap so the board doesn't touch the menu's bottom edge.
+        if (px > 0) px += 8;
+        document.documentElement.style.setProperty('--sbir-top-clearance', px + 'px');
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sbirApplyTopClearance, { once: true });
+    } else {
+        sbirApplyTopClearance();
+    }
+    window.addEventListener('load', sbirApplyTopClearance);
+    window.addEventListener('resize', sbirApplyTopClearance);
+
     function t(key, fallback) {
         if (window.sbir_public && window.sbir_public.i18n && window.sbir_public.i18n[key]) {
             return window.sbir_public.i18n[key];
@@ -124,10 +200,10 @@
     function updateBoardFilterVisibility($container, tab) {
         var isRoadmap = tab === 'roadmap';
         var isIdeas = tab === 'ideas';
-        $container.find('.sbir-board-filter-roadmap').toggle(isRoadmap);
-        $container.find('.sbir-board-sort-roadmap').toggle(isRoadmap);
-        $container.find('.sbir-board-filter-ideas').toggle(isIdeas);
-        $container.find('.sbir-board-sort-ideas').toggle(isIdeas);
+        $container.find('.sbir-board-filter-roadmap').toggleClass('sbir-filter-hidden', !isRoadmap);
+        $container.find('.sbir-board-sort-roadmap').toggleClass('sbir-filter-hidden', !isRoadmap);
+        $container.find('.sbir-board-filter-ideas').toggleClass('sbir-filter-hidden', !isIdeas);
+        $container.find('.sbir-board-sort-ideas').toggleClass('sbir-filter-hidden', !isIdeas);
     }
 
     function ensureBoardItemOrderIndexes($container) {
@@ -370,9 +446,7 @@
 
         $list.children('.sbir-idea-item').removeClass('sbir-page-hidden');
 
-        var $visibleItems = $list.children('.sbir-idea-item').filter(function() {
-            return $(this).css('display') !== 'none';
-        });
+        var $visibleItems = $list.children('.sbir-idea-item').not('.sbir-filter-hidden');
         var total = $visibleItems.length;
         var totalPages = Math.max(1, Math.ceil(total / perPage));
         var current = parseInt(targetPage, 10) || 1;
@@ -412,15 +486,19 @@
             applyIdeasSort($container);
         }
 
+        // Use a CSS class (.sbir-filter-hidden) instead of jQuery's .toggle()
+        // for visibility. jQuery's show/hide writes inline `display: block`
+        // when un-hiding, which overrides the stylesheet `display: flex` on
+        // .sbir-idea-item and collapses the vote+content row into a stack.
         if (activeTab === 'roadmap') {
             $activePane.find('.sbir-kanban-column[data-status]').each(function() {
                 var $column = $(this);
                 var status = slugifyFilterLabel($column.data('status'));
                 var showColumn = cardFilter === 'all' || status === cardFilter;
-                $column.toggle(showColumn);
+                $column.toggleClass('sbir-filter-hidden', !showColumn);
             });
         } else {
-            $container.find('.sbir-tab-pane[data-tab="roadmap"] .sbir-kanban-column').show();
+            $container.find('.sbir-tab-pane[data-tab="roadmap"] .sbir-kanban-column').removeClass('sbir-filter-hidden');
         }
 
         var $items = $activePane.find('.sbir-kanban-item, .sbir-idea-item');
@@ -443,7 +521,7 @@
                     matched = matched && categoryList.indexOf(ideasFilter) !== -1;
                 }
             }
-            $item.toggle(matched);
+            $item.toggleClass('sbir-filter-hidden', !matched);
             if (matched) {
                 visibleCount++;
             }
@@ -757,6 +835,43 @@
             if ($search.length) {
                 applyBoardSearch($container, $search.val());
             }
+        });
+
+        // Collapsible search: clicking the icon expands the input; clicking
+        // outside (or pressing Escape) collapses it back IF it's empty.
+        $(document).on('click', '.sbir-board-search-toggle', function(e) {
+            e.preventDefault();
+            var $wrap = $(this).closest('.sbir-board-search');
+            $wrap.attr('data-collapsed', 'false');
+            $(this).attr('aria-expanded', 'true');
+            // Wait for the width transition to release before focusing.
+            window.setTimeout(function() {
+                $wrap.find('.sbir-board-search-input').trigger('focus');
+            }, 50);
+        });
+        $(document).on('mousedown.sbirSearchCollapse', function(e) {
+            var $target = $(e.target);
+            if ($target.closest('.sbir-board-search').length) return;
+            $('.sbir-board-search[data-collapsed="false"]').each(function() {
+                var $wrap = $(this);
+                var $input = $wrap.find('.sbir-board-search-input');
+                if (!$input.length || !$input.val()) {
+                    $wrap.attr('data-collapsed', 'true');
+                    $wrap.find('.sbir-board-search-toggle').attr('aria-expanded', 'false');
+                }
+            });
+        });
+        $(document).on('keydown.sbirSearchEsc', function(e) {
+            if (e.key !== 'Escape' && e.keyCode !== 27) return;
+            $('.sbir-board-search[data-collapsed="false"]').each(function() {
+                var $wrap = $(this);
+                var $input = $wrap.find('.sbir-board-search-input');
+                if ($input.length) {
+                    $input.val('').trigger('input');
+                }
+                $wrap.attr('data-collapsed', 'true');
+                $wrap.find('.sbir-board-search-toggle').attr('aria-expanded', 'false');
+            });
         });
 
         // Board search (applies to current active tab).

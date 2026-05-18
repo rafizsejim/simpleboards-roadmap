@@ -245,8 +245,47 @@ function sbir_get_vote_count($item_id) {
         $count = (int) $wpdb->get_var($wpdb->prepare("SELECT vote_count FROM {$counts_table} WHERE item_id = %d", $item_id));
         wp_cache_set('vote_count_' . $item_id, $count, SBIR_Cache_Helper::CACHE_GROUP, 3600);
     }
-    
+
     return $count;
+}
+
+/**
+ * Overwrite the vote count for an item.
+ *
+ * Used by CSV import and by the admin item edit form so admins can backfill
+ * counts when the source data has no per-user votes (only an aggregate).
+ * Atomic upsert via ON DUPLICATE KEY UPDATE; clears the per-item cache so
+ * the new value reads back from cards immediately.
+ *
+ * @param int $item_id
+ * @param int $vote_count Clamped to >= 0.
+ * @return void
+ */
+function sbir_set_vote_count($item_id, $vote_count) {
+    global $wpdb;
+
+    $item_id = absint($item_id);
+    if ($item_id <= 0) {
+        return;
+    }
+    $vote_count = max(0, absint($vote_count));
+
+    $table = $wpdb->prefix . 'sbir_vote_counts';
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    $wpdb->query(
+        $wpdb->prepare(
+            "INSERT INTO `{$table}` (item_id, vote_count) VALUES (%d, %d)
+             ON DUPLICATE KEY UPDATE vote_count = VALUES(vote_count)",
+            $item_id,
+            $vote_count
+        )
+    );
+
+    if (class_exists('SBIR_Cache_Helper')) {
+        SBIR_Cache_Helper::clear_vote_cache($item_id);
+    } else {
+        wp_cache_delete('vote_count_' . $item_id, 'sbir_plugin');
+    }
 }
 
 /**
@@ -268,8 +307,17 @@ function sbir_get_svg_icon($icon, $attrs = array()) {
         'bell' => '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
         'check_circle' => '<circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>',
         'circle' => '<circle cx="12" cy="12" r="10"/>',
+        'square' => '<rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>',
         'pin' => '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
         'x' => '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',
+        // Status / tab icons
+        'rocket' => '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+        'lightbulb' => '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+        'activity' => '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+        'target' => '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+        'search' => '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+        'columns' => '<rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="3" width="4" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>',
+        'megaphone' => '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
     );
     if (!isset($paths[$icon])) {
         return '';
@@ -786,8 +834,66 @@ function sbir_get_status_color($status_slug) {
         'in-progress' => '#3b82f6',
         'done' => '#10b981'
     );
-    
+
     return isset($colors[$status_slug]) ? $colors[$status_slug] : '#6b7280';
+}
+
+/**
+ * Map a status slug + name to an icon key registered in sbir_get_svg_icon().
+ *
+ * Used by the bold column-header style to render an icon badge next to the
+ * status name. Matches against common keywords so user-created statuses get
+ * a sensible default (e.g. "In Progress", "Doing", "Building" → activity).
+ *
+ * @param string $slug Status term slug.
+ * @param string $name Status display name.
+ * @return string Icon key (one of: rocket, activity, check_circle, lightbulb, target).
+ */
+function sbir_get_status_icon_key($slug, $name = '') {
+    $haystack = strtolower($slug . ' ' . $name);
+
+    $rules = array(
+        'check_circle' => array('done', 'completed', 'complete', 'finished', 'shipped', 'launched', 'released'),
+        'activity'     => array('progress', 'doing', 'building', 'developing', 'started', 'working'),
+        'lightbulb'    => array('consider', 'review', 'evaluat', 'idea', 'proposed', 'feedback'),
+        'rocket'       => array('planned', 'plan', 'todo', 'backlog', 'next', 'upcoming', 'future', 'queued', 'roadmap'),
+    );
+
+    foreach ($rules as $icon => $keywords) {
+        foreach ($keywords as $kw) {
+            if (strpos($haystack, $kw) !== false) {
+                return $icon;
+            }
+        }
+    }
+
+    return 'target';
+}
+
+/**
+ * Whether an item's current status is flagged as a release stage.
+ *
+ * Used to swap the "Due" label for "Released" on cards and in the drawer
+ * once an item ships. Reads the term meta written by SBIR_Post_Types::save_status_fields().
+ *
+ * @param int $item_id
+ * @return bool
+ */
+function sbir_item_is_released($item_id) {
+    $item_id = (int) $item_id;
+    if ($item_id <= 0) {
+        return false;
+    }
+    $term_ids = wp_get_object_terms($item_id, 'sbir_status', array('fields' => 'ids'));
+    if (is_wp_error($term_ids) || empty($term_ids)) {
+        return false;
+    }
+    foreach ($term_ids as $tid) {
+        if (get_term_meta((int) $tid, '_sbir_status_released', true) === 'yes') {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -809,7 +915,12 @@ function sbir_render_item_meta($item_id) {
     $deadline = get_post_meta($item_id, '_sbir_deadline', true);
     $deadline_ts = $deadline ? strtotime($deadline) : false;
     if ($deadline_ts) {
-        echo '<span class="sbir-meta-deadline-inline">'
+        $is_released = sbir_item_is_released($item_id);
+        $deadline_class = 'sbir-meta-deadline-inline' . ($is_released ? ' sbir-meta-deadline-inline--released' : '');
+        $deadline_title = $is_released
+            ? __('Released', 'simpleboards-roadmap')
+            : __('Due', 'simpleboards-roadmap');
+        echo '<span class="' . esc_attr($deadline_class) . '" title="' . esc_attr($deadline_title) . '">'
             . sbir_get_svg_icon('calendar', array('class' => 'sbir-meta-icon', 'width' => '11', 'height' => '11'))
             . esc_html(date_i18n(get_option('date_format'), $deadline_ts))
             . '</span>';

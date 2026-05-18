@@ -155,6 +155,8 @@ $render_kanban_item = static function($item, $status_slug, $board_id) {
                     ?>
                         <span class="<?php echo esc_attr($cat_class); ?>"<?php echo $cat_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html($cat->name); ?></span>
                     <?php endforeach; ?>
+                <?php else : ?>
+                    <span class="sbir-chip sbir-chip--uncategorized"><?php esc_html_e('Uncategorized', 'simpleboards-roadmap'); ?></span>
                 <?php endif; ?>
             </div>
             <div class="sbir-card-top-right">
@@ -193,10 +195,12 @@ $render_kanban_item = static function($item, $status_slug, $board_id) {
                 $color = sbir_get_status_color($status->slug);
             }
         ?>
+            <?php $icon_key = sbir_get_status_icon_key((string) $status->slug, (string) $status->name); ?>
             <div class="sbir-kanban-column sbir-status-<?php echo esc_attr($status->slug); ?>" data-status="<?php echo esc_attr($status->slug); ?>" style="--status-color: <?php echo esc_attr($color); ?>;">
                 <div class="sbir-kanban-header sbir-kanban-header--minimal">
                     <div class="sbir-kanban-head-left">
                         <span class="sbir-status-dot" aria-hidden="true"></span>
+                        <span class="sbir-column-icon-badge" aria-hidden="true"><?php echo sbir_get_svg_icon($icon_key, array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
                         <h3 class="sbir-head-title"><?php echo esc_html($status->name); ?></h3>
                         <span class="sbir-chip sbir-chip-neutral"><?php echo count($items); ?></span>
                     </div>
@@ -232,6 +236,7 @@ $render_kanban_item = static function($item, $status_slug, $board_id) {
                 <div class="sbir-kanban-header sbir-kanban-header--minimal">
                     <div class="sbir-kanban-head-left">
                         <span class="sbir-status-dot" aria-hidden="true"></span>
+                        <span class="sbir-column-icon-badge" aria-hidden="true"><?php echo sbir_get_svg_icon('target', array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
                         <h3 class="sbir-head-title"><?php echo esc_html__('Unassigned', 'simpleboards-roadmap'); ?></h3>
                         <span class="sbir-chip sbir-chip-neutral"><?php echo count($unassigned_items); ?></span>
                     </div>

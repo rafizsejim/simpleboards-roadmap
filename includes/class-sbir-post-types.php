@@ -194,7 +194,12 @@ class SBIR_Post_Types {
             'update_item' => __('Update Category', 'simpleboards-roadmap'),
             'add_new_item' => __('Add New Category', 'simpleboards-roadmap'),
             'new_item_name' => __('New Category Name', 'simpleboards-roadmap'),
-            'menu_name' => __('Categories', 'simpleboards-roadmap')
+            'menu_name' => __('Categories', 'simpleboards-roadmap'),
+            'back_to_items' => __('← Go to Categories', 'simpleboards-roadmap'),
+            'not_found' => __('No categories found.', 'simpleboards-roadmap'),
+            'no_terms' => __('No categories', 'simpleboards-roadmap'),
+            'items_list' => __('Categories list', 'simpleboards-roadmap'),
+            'items_list_navigation' => __('Categories list navigation', 'simpleboards-roadmap'),
         );
         
         $category_args = array(
@@ -223,7 +228,17 @@ class SBIR_Post_Types {
             'update_item' => __('Update Status', 'simpleboards-roadmap'),
             'add_new_item' => __('Add New Status', 'simpleboards-roadmap'),
             'new_item_name' => __('New Status Name', 'simpleboards-roadmap'),
-            'menu_name' => __('Statuses', 'simpleboards-roadmap')
+            'menu_name' => __('Statuses', 'simpleboards-roadmap'),
+            // Without these, WP falls back to generic tag strings — e.g. the
+            // post-edit confirmation links read "← Go to Tags" instead of
+            // "← Go to Statuses".
+            'back_to_items' => __('← Go to Statuses', 'simpleboards-roadmap'),
+            'not_found' => __('No statuses found.', 'simpleboards-roadmap'),
+            'no_terms' => __('No statuses', 'simpleboards-roadmap'),
+            'items_list' => __('Statuses list', 'simpleboards-roadmap'),
+            'items_list_navigation' => __('Statuses list navigation', 'simpleboards-roadmap'),
+            'parent_item' => null,
+            'parent_item_colon' => null,
         );
         
         $status_args = array(
@@ -309,6 +324,13 @@ class SBIR_Post_Types {
             <input type="color" name="sbir_status_color" id="sbir_status_color" value="#94a3b8" />
             <p class="description"><?php esc_html_e('Choose the color shown for this status on the board.', 'simpleboards-roadmap'); ?></p>
         </div>
+        <div class="form-field">
+            <label for="sbir_status_released">
+                <input type="checkbox" name="sbir_status_released" id="sbir_status_released" value="yes">
+                <?php esc_html_e('Items in this status are released', 'simpleboards-roadmap'); ?>
+            </label>
+            <p class="description"><?php esc_html_e('The date label shows as Released instead of Due.', 'simpleboards-roadmap'); ?></p>
+        </div>
         <?php
     }
 
@@ -316,7 +338,8 @@ class SBIR_Post_Types {
         $boards = $this->get_boards_for_status_fields();
         $value = get_term_meta($term->term_id, '_sbir_status_board', true);
         $color = get_term_meta($term->term_id, '_sbir_status_color', true);
-        
+        $released = get_term_meta($term->term_id, '_sbir_status_released', true) === 'yes';
+
         // (Server-rendered impact notice removed; handled live via AJAX on change.)
         ?>
         <input type="hidden" id="sbir_status_term_id" value="<?php echo esc_attr($term->term_id); ?>" />
@@ -339,6 +362,16 @@ class SBIR_Post_Types {
             <td>
                 <input type="color" name="sbir_status_color" id="sbir_status_color" value="<?php echo esc_attr($color ? $color : '#94a3b8'); ?>" />
                 <p class="description"><?php esc_html_e('Choose the color shown for this status on the board.', 'simpleboards-roadmap'); ?></p>
+            </td>
+        </tr>
+        <tr class="form-field">
+            <th scope="row"><?php esc_html_e('Release stage', 'simpleboards-roadmap'); ?></th>
+            <td>
+                <label for="sbir_status_released">
+                    <input type="checkbox" name="sbir_status_released" id="sbir_status_released" value="yes" <?php checked($released); ?>>
+                    <?php esc_html_e('Items in this status are released', 'simpleboards-roadmap'); ?>
+                </label>
+                <p class="description"><?php esc_html_e('The date label shows as Released instead of Due.', 'simpleboards-roadmap'); ?></p>
             </td>
         </tr>
         <?php
@@ -419,6 +452,12 @@ class SBIR_Post_Types {
             } else {
                 delete_term_meta($term_id, '_sbir_status_color');
             }
+        }
+
+        if (isset($_POST['sbir_status_released']) && wp_unslash($_POST['sbir_status_released']) === 'yes') {
+            update_term_meta($term_id, '_sbir_status_released', 'yes');
+        } else {
+            delete_term_meta($term_id, '_sbir_status_released');
         }
     }
 

@@ -380,11 +380,23 @@ class SBIR_Frontend {
             if (!wp_script_is('comment-reply', 'enqueued')) {
                 wp_enqueue_script('comment-reply');
             }
+            /**
+             * Manual override (in pixels) added on top of the auto-detected
+             * top clearance. Use this for themes whose fixed nav can't be
+             * detected by the elementsFromPoint scan in sbir-public.js.
+             *
+             * Example: add_filter('sbir_top_clearance_extra', fn() => 80);
+             *
+             * @since 1.0.0
+             * @param int Default 0.
+             */
+            $top_clearance_extra = (int) apply_filters('sbir_top_clearance_extra', 0);
             wp_localize_script('sbir-public', 'sbir_public', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('sbir_public_nonce'),
                 'current_user_can_manage' => current_user_can('edit_posts'),
                 'loading_text' => __('Loading...', 'simpleboards-roadmap'),
+                'top_clearance_extra' => $top_clearance_extra,
                 'i18n' => array(
                     'submitting' => __('Submitting...', 'simpleboards-roadmap'),
                     'submit_idea' => __('Submit Idea', 'simpleboards-roadmap'),

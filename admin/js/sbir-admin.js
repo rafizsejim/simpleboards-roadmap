@@ -82,16 +82,21 @@
             }
             var boardId = parseInt($board.val(), 10) || 0;
             var current = parseInt($select.val(), 10) || 0;
-            // Rebuild options
+            // Rebuild options. `data-released` must survive the rebuild so the
+            // Deadline → Released label swap can react to the selected status.
             var opts = ['<option value="">' + t('select_status', 'Select Status') + '</option>'];
             statuses.forEach(function(s){
                 // Show globals (board 0) and those matching current board
                 if (boardId ? (s.board === 0 || s.board === boardId) : (s.board === 0)) {
                     var sel = (s.id === current) ? ' selected' : '';
-                    opts.push('<option value="' + s.id + '"' + sel + '>' + s.name + '</option>');
+                    var released = s.released ? ' data-released="1"' : ' data-released="0"';
+                    opts.push('<option value="' + s.id + '"' + released + sel + '>' + s.name + '</option>');
                 }
             });
             $select.html(opts.join(''));
+            // Notify listeners (e.g. the deadline-label swap) that the options
+            // were rebuilt, since .html() doesn't fire a native change event.
+            $select.trigger('change');
         }
         $(document).on('change', '#sbir_board_id', sbirFilterStatusesByBoard);
         sbirFilterStatusesByBoard();

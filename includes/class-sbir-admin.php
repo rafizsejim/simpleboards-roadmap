@@ -81,6 +81,7 @@ class SBIR_Admin {
         add_action('manage_sbir_board_posts_custom_column', array($this, 'render_board_columns'), 10, 2);
         add_action('wp_ajax_sbir_status_reassign_impact', array($this, 'ajax_status_reassign_impact'));
         add_action('admin_head', array($this, 'hide_setup_submenus_in_sidebar'));
+        add_action('admin_head', array($this, 'print_menu_icon_styles'));
         add_filter('parent_file', array($this, 'set_menu_highlight'));
         add_filter('submenu_file', array($this, 'set_submenu_highlight'), 10, 2);
     }
@@ -105,14 +106,15 @@ class SBIR_Admin {
      * Add SimpleBoards menu and submenu pages.
      */
     public function add_menu_pages() {
-        // Main menu
+        $icon = SBIR_PLUGIN_URL . 'admin/images/wp-menu-icon.svg';
+
         add_menu_page(
             __('SimpleBoards', 'simpleboards-roadmap'),
             __('SimpleBoards', 'simpleboards-roadmap'),
             'manage_options',
             'simpleboards-roadmap',
             array($this, 'render_dashboard'),
-            'dashicons-clipboard',
+            $icon,
             25
         );
         
@@ -180,9 +182,34 @@ class SBIR_Admin {
             'sbir-add-item',
             array($this, 'render_add_item_page')
         );
-        
+
     }
-    
+
+    /**
+     * Render the brand-colored menu icon at full opacity.
+     *
+     * Why: WordPress dims admin menu icons by default (opacity 0.6 on <img>,
+     * mask-image on data-URI SVGs). Without this override the colored SVG
+     * either flattens to a grey silhouette or appears washed out.
+     */
+    public function print_menu_icon_styles() {
+        ?>
+        <style id="sbir-menu-icon-style">
+            #adminmenu li.toplevel_page_simpleboards-roadmap .wp-menu-image img {
+                opacity: 1;
+                padding: 6px 0 0 0;
+                width: 20px;
+                height: 20px;
+            }
+            #adminmenu li.toplevel_page_simpleboards-roadmap:hover .wp-menu-image img,
+            #adminmenu li.toplevel_page_simpleboards-roadmap.current .wp-menu-image img,
+            #adminmenu li.toplevel_page_simpleboards-roadmap.wp-has-current-submenu .wp-menu-image img {
+                opacity: 1;
+            }
+        </style>
+        <?php
+    }
+
     /**
      * Redirect dashboard to Boards list.
      */
@@ -299,13 +326,40 @@ class SBIR_Admin {
                                 <textarea id="sbir_new_board_description" name="description" rows="3" class="large-text"><?php echo esc_textarea($description_value); ?></textarea>
                             </td>
                         </tr>
+                        <?php if ($is_edit) : ?>
+                        <tr>
+                            <th scope="row"><label for="sbir_board_slug"><?php esc_html_e('Shortcode slug', 'simpleboards-roadmap'); ?></label></th>
+                            <td>
+                                <input type="text" id="sbir_board_slug" name="board_slug" class="regular-text code" value="<?php echo esc_attr($shortcode_slug); ?>" data-original-slug="<?php echo esc_attr($shortcode_slug); ?>">
+                                <p class="description"><?php esc_html_e('Shortcode:', 'simpleboards-roadmap'); ?> <code id="sbir_board_shortcode_preview"><?php echo esc_html($shortcode_value); ?></code></p>
+                                <p class="description" id="sbir_board_slug_warning" style="color:#b45309;display:none;"><strong><?php esc_html_e('Warning:', 'simpleboards-roadmap'); ?></strong> <?php esc_html_e('Changing the slug updates the shortcode and the board\'s permalink. Pages with the old shortcode will stop displaying this board, and old links will 404.', 'simpleboards-roadmap'); ?></p>
+                                <script>
+                                    (function(){
+                                        var input = document.getElementById('sbir_board_slug');
+                                        var preview = document.getElementById('sbir_board_shortcode_preview');
+                                        var warning = document.getElementById('sbir_board_slug_warning');
+                                        if (!input || !preview) { return; }
+                                        var original = input.getAttribute('data-original-slug') || '';
+                                        input.addEventListener('input', function(){
+                                            var v = input.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                                            preview.textContent = v ? '[sbir_board product="' + v + '"]' : '';
+                                            if (warning) {
+                                                warning.style.display = (v !== original) ? '' : 'none';
+                                            }
+                                        });
+                                    })();
+                                </script>
+                            </td>
+                        </tr>
+                        <?php else : ?>
                         <tr>
                             <th scope="row"><label for="sbir_board_shortcode"><?php esc_html_e('Shortcode', 'simpleboards-roadmap'); ?></label></th>
                             <td>
                                 <input type="text" id="sbir_board_shortcode" class="regular-text code" value="<?php echo esc_attr($shortcode_value); ?>" readonly>
-                                <p class="description"><?php echo $is_edit ? esc_html__('Copy this shortcode and place it on any page.', 'simpleboards-roadmap') : esc_html__('Shortcode preview updates from board name. Final slug is available after first save.', 'simpleboards-roadmap'); ?></p>
+                                <p class="description"><?php esc_html_e('Shortcode preview updates from board name. The slug becomes editable after first save.', 'simpleboards-roadmap'); ?></p>
                             </td>
                         </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
 
@@ -352,7 +406,7 @@ class SBIR_Admin {
                                 <tr>
                                     <th scope="row"><?php esc_html_e('Roadmap controls', 'simpleboards-roadmap'); ?></th>
                                     <td>
-                                        <label for="sbir_display_roadmap_filter" style="display:block; margin-bottom:6px;">
+                                        <label for="sbir_display_roadmap_filter" style="margin-bottom:6px;">
                                             <input type="checkbox" id="sbir_display_roadmap_filter" name="sbir_display_roadmap_filter" value="yes" <?php checked($display_roadmap_filter, 'yes'); ?>>
                                             <?php esc_html_e('Display Filter', 'simpleboards-roadmap'); ?>
                                         </label>
@@ -365,7 +419,7 @@ class SBIR_Admin {
                                 <tr>
                                     <th scope="row"><?php esc_html_e('Ideas controls', 'simpleboards-roadmap'); ?></th>
                                     <td>
-                                        <label for="sbir_display_ideas_filter" style="display:block; margin-bottom:6px;">
+                                        <label for="sbir_display_ideas_filter" style="margin-bottom:6px;">
                                             <input type="checkbox" id="sbir_display_ideas_filter" name="sbir_display_ideas_filter" value="yes" <?php checked($display_ideas_filter, 'yes'); ?>>
                                             <?php esc_html_e('Display Filter', 'simpleboards-roadmap'); ?>
                                         </label>
@@ -527,14 +581,18 @@ class SBIR_Admin {
                 wp_die(esc_html__('Sorry, you are not allowed to edit this board.', 'simpleboards-roadmap'));
             }
 
-            $result = wp_update_post(
-                array(
-                    'ID' => $board_id,
-                    'post_title' => $title,
-                    'post_content' => $description,
-                ),
-                true
+            $update_args = array(
+                'ID' => $board_id,
+                'post_title' => $title,
+                'post_content' => $description,
             );
+
+            $posted_slug = isset($_POST['board_slug']) ? sanitize_title(wp_unslash($_POST['board_slug'])) : '';
+            if ($posted_slug !== '' && $posted_slug !== (string) get_post_field('post_name', $board_id)) {
+                $update_args['post_name'] = $posted_slug;
+            }
+
+            $result = wp_update_post($update_args, true);
         } else {
             $result = wp_insert_post(
                 array(
@@ -637,12 +695,14 @@ class SBIR_Admin {
         $title_value = $is_edit ? $item->post_title : '';
         $description_value = $is_edit ? $item->post_content : '';
         $board_id = $is_edit ? absint(get_post_meta($item_id, '_sbir_board_id', true)) : 0;
-        $is_roadmap = $is_edit ? (get_post_meta($item_id, '_sbir_is_roadmap', true) === 'yes' ? 'yes' : 'no') : 'no';
+        // New items default to "Roadmap Item" since that's the primary use case.
+        $is_roadmap = $is_edit ? (get_post_meta($item_id, '_sbir_is_roadmap', true) === 'yes' ? 'yes' : 'no') : 'yes';
         $status_terms = $is_edit ? wp_get_object_terms($item_id, 'sbir_status', array('fields' => 'ids')) : array();
         $current_status = !empty($status_terms) ? absint($status_terms[0]) : 0;
         $category_terms = $is_edit ? wp_get_object_terms($item_id, 'sbir_category', array('fields' => 'ids')) : array();
         $current_category = !empty($category_terms) ? absint($category_terms[0]) : 0;
         $deadline = $is_edit ? (string) get_post_meta($item_id, '_sbir_deadline', true) : '';
+        $vote_count = $is_edit ? (int) sbir_get_vote_count($item_id) : 0;
 
         if (!$is_edit) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only defaults
@@ -669,10 +729,12 @@ class SBIR_Admin {
         $status_data = array();
         foreach ($statuses as $status_term) {
             $belongs_to = (int) get_term_meta($status_term->term_id, '_sbir_status_board', true);
+            $is_released_stage = get_term_meta($status_term->term_id, '_sbir_status_released', true) === 'yes';
             $status_data[] = array(
                 'id' => (int) $status_term->term_id,
                 'name' => (string) $status_term->name,
                 'board' => $belongs_to,
+                'released' => $is_released_stage,
             );
         }
 
@@ -681,12 +743,35 @@ class SBIR_Admin {
             $categories = array();
         }
         ?>
+        <?php
+        // Pre-fill the Add Item link with the current board (and item type)
+        // so creating another item lands on the same board without picking
+        // it again — the common case after saving.
+        $add_item_args = array('page' => 'sbir-add-item');
+        if ($board_id) {
+            $add_item_args['sbir_board_id'] = (int) $board_id;
+        }
+        if ($is_roadmap === 'yes') {
+            $add_item_args['sbir_is_roadmap'] = 'yes';
+        }
+        $add_item_url = add_query_arg($add_item_args, admin_url('admin.php'));
+        ?>
         <div class="wrap sbir-add-item-page">
-            <h1><?php echo esc_html($is_edit ? __('Edit Item', 'simpleboards-roadmap') : __('Add Item', 'simpleboards-roadmap')); ?></h1>
+            <h1>
+                <?php echo esc_html($is_edit ? __('Edit Item', 'simpleboards-roadmap') : __('Add Item', 'simpleboards-roadmap')); ?>
+                <?php if ($is_edit) : ?>
+                    <a class="page-title-action" href="<?php echo esc_url($add_item_url); ?>"><?php esc_html_e('Add Item', 'simpleboards-roadmap'); ?></a>
+                <?php endif; ?>
+            </h1>
             <p class="description"><?php esc_html_e('Use this focused form to create and edit roadmap items and ideas.', 'simpleboards-roadmap'); ?></p>
 
             <?php if ($updated) : ?>
-                <div class="notice notice-success"><p><?php esc_html_e('Item saved.', 'simpleboards-roadmap'); ?></p></div>
+                <div class="notice notice-success">
+                    <p>
+                        <?php esc_html_e('Item saved.', 'simpleboards-roadmap'); ?>
+                        <a href="<?php echo esc_url($add_item_url); ?>" style="margin-left:8px;"><?php esc_html_e('Add another', 'simpleboards-roadmap'); ?></a>
+                    </p>
+                </div>
             <?php endif; ?>
 
             <?php if ($error !== '') : ?>
@@ -728,8 +813,8 @@ class SBIR_Admin {
                         <tr>
                             <th scope="row"><?php esc_html_e('Item Type', 'simpleboards-roadmap'); ?></th>
                             <td>
-                                <label><input type="radio" name="sbir_is_roadmap" value="no" <?php checked($is_roadmap, 'no'); ?>> <?php esc_html_e('Idea', 'simpleboards-roadmap'); ?></label><br>
-                                <label><input type="radio" name="sbir_is_roadmap" value="yes" <?php checked($is_roadmap, 'yes'); ?>> <?php esc_html_e('Roadmap Item', 'simpleboards-roadmap'); ?></label>
+                                <label><input type="radio" name="sbir_is_roadmap" value="yes" <?php checked($is_roadmap, 'yes'); ?>> <?php esc_html_e('Roadmap Item', 'simpleboards-roadmap'); ?></label><br>
+                                <label><input type="radio" name="sbir_is_roadmap" value="no" <?php checked($is_roadmap, 'no'); ?>> <?php esc_html_e('Idea', 'simpleboards-roadmap'); ?></label>
                             </td>
                         </tr>
                         <tr>
@@ -737,8 +822,10 @@ class SBIR_Admin {
                             <td>
                                 <select id="sbir_status_select" name="sbir_status_select" data-statuses='<?php echo esc_attr(wp_json_encode($status_data)); ?>' <?php disabled($is_roadmap !== 'yes'); ?>>
                                     <option value=""><?php esc_html_e('Select Status', 'simpleboards-roadmap'); ?></option>
-                                    <?php foreach ($statuses as $status_term) : ?>
-                                        <option value="<?php echo esc_attr($status_term->term_id); ?>" <?php selected($current_status, $status_term->term_id); ?>>
+                                    <?php foreach ($statuses as $status_term) :
+                                        $opt_released = get_term_meta($status_term->term_id, '_sbir_status_released', true) === 'yes';
+                                    ?>
+                                        <option value="<?php echo esc_attr($status_term->term_id); ?>" data-released="<?php echo $opt_released ? '1' : '0'; ?>" <?php selected($current_status, $status_term->term_id); ?>>
                                             <?php echo esc_html($status_term->name); ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -764,11 +851,42 @@ class SBIR_Admin {
                             </td>
                         </tr>
                         <tr>
-                            <th scope="row"><label for="sbir_deadline"><?php esc_html_e('Deadline', 'simpleboards-roadmap'); ?></label></th>
+                            <th scope="row">
+                                <label for="sbir_deadline">
+                                    <span class="sbir-deadline-label-default" data-default-label="<?php esc_attr_e('Deadline', 'simpleboards-roadmap'); ?>" data-released-label="<?php esc_attr_e('Released', 'simpleboards-roadmap'); ?>"><?php esc_html_e('Deadline', 'simpleboards-roadmap'); ?></span>
+                                </label>
+                            </th>
                             <td><input type="date" id="sbir_deadline" name="deadline" value="<?php echo esc_attr($deadline); ?>"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="sbir_vote_count"><?php esc_html_e('Votes', 'simpleboards-roadmap'); ?></label></th>
+                            <td>
+                                <input type="number" id="sbir_vote_count" name="vote_count" min="0" step="1" value="<?php echo esc_attr((string) $vote_count); ?>" class="small-text">
+                                <p class="description"><?php esc_html_e('Set the total vote count. Use this to backfill items imported without vote data.', 'simpleboards-roadmap'); ?></p>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <script>
+                    (function(){
+                        // When the selected status is flagged as a release stage,
+                        // swap the Deadline label to Released so admins see the
+                        // same semantics here as on cards and in the drawer.
+                        var select = document.getElementById('sbir_status_select');
+                        var labelSpan = document.querySelector('.sbir-deadline-label-default');
+                        if (!select || !labelSpan) { return; }
+                        var defaultLabel = labelSpan.getAttribute('data-default-label') || labelSpan.textContent;
+                        var releasedLabel = labelSpan.getAttribute('data-released-label') || defaultLabel;
+                        function syncDeadlineLabel(){
+                            var opt = select.options[select.selectedIndex];
+                            var released = opt && opt.getAttribute('data-released') === '1';
+                            labelSpan.textContent = released ? releasedLabel : defaultLabel;
+                        }
+                        select.addEventListener('change', syncDeadlineLabel);
+                        syncDeadlineLabel();
+                    })();
+                </script>
 
                 <?php do_action('sbir_render_item_setup_extra_fields', (int) $item_id, (bool) $is_edit, (string) $is_roadmap, (int) $board_id); ?>
 
@@ -913,6 +1031,10 @@ class SBIR_Admin {
             }
         } else {
             delete_post_meta($item_id, '_sbir_deadline');
+        }
+
+        if (isset($_POST['vote_count'])) {
+            sbir_set_vote_count((int) $item_id, absint(wp_unslash($_POST['vote_count'])));
         }
 
         if (function_exists('sbir_get_item_number')) {
@@ -1195,9 +1317,17 @@ class SBIR_Admin {
         
         $board_id = get_post_meta($post->ID, '_sbir_board_id', true);
         $is_roadmap_meta = get_post_meta($post->ID, '_sbir_is_roadmap', true);
-        $is_roadmap = ($is_roadmap_meta === 'yes') ? 'yes' : 'no';
+        $is_new_item = $post instanceof WP_Post && $post->post_status === 'auto-draft';
+        // New items default to Roadmap Item; existing items respect their saved value.
+        if ($is_roadmap_meta === 'yes') {
+            $is_roadmap = 'yes';
+        } elseif ($is_roadmap_meta === 'no') {
+            $is_roadmap = 'no';
+        } else {
+            $is_roadmap = $is_new_item ? 'yes' : 'no';
+        }
 
-        $is_new = $post instanceof WP_Post && $post->post_status === 'auto-draft';
+        $is_new = $is_new_item;
         if ($is_new) {
             // Preselect defaults from query args when creating from board
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -1224,12 +1354,12 @@ class SBIR_Admin {
         <p>
             <strong><?php esc_html_e('Item Type', 'simpleboards-roadmap'); ?>:</strong><br>
             <label>
-                <input type="radio" name="sbir_is_roadmap" value="no" <?php checked($is_roadmap, 'no'); ?>>
-                <?php esc_html_e('Idea', 'simpleboards-roadmap'); ?>
-            </label><br>
-            <label>
                 <input type="radio" name="sbir_is_roadmap" value="yes" <?php checked($is_roadmap, 'yes'); ?>>
                 <?php esc_html_e('Roadmap Item', 'simpleboards-roadmap'); ?>
+            </label><br>
+            <label>
+                <input type="radio" name="sbir_is_roadmap" value="no" <?php checked($is_roadmap, 'no'); ?>>
+                <?php esc_html_e('Idea', 'simpleboards-roadmap'); ?>
             </label>
         </p>
         <?php

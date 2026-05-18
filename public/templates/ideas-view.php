@@ -26,6 +26,19 @@ $category_counts = array();
 if (!empty($idea_ids)) {
     $term_links = wp_get_object_terms($idea_ids, 'sbir_category', array('fields' => 'all_with_object_id'));
     if (!is_wp_error($term_links) && !empty($term_links)) {
+        // Prime term-meta cache once for every distinct term that appears in
+        // the result. Without this, the get_term_meta() calls in the loop fire
+        // a separate DB query per term (N+1) on a cold cache.
+        $term_ids_for_meta = array();
+        foreach ($term_links as $term_link) {
+            if (isset($term_link->term_id)) {
+                $term_ids_for_meta[(int) $term_link->term_id] = true;
+            }
+        }
+        if (!empty($term_ids_for_meta)) {
+            update_termmeta_cache(array_keys($term_ids_for_meta));
+        }
+
         foreach ($term_links as $term_link) {
             $item_id = isset($term_link->object_id) ? (int) $term_link->object_id : 0;
             $term_id = isset($term_link->term_id) ? (int) $term_link->term_id : 0;
@@ -36,16 +49,17 @@ if (!empty($idea_ids)) {
                 $categories_by_item[$item_id] = array();
             }
             if (!isset($categories_by_item[$item_id][$term_id])) {
+                $cat_color = (string) get_term_meta($term_id, '_sbir_category_color', true);
                 $categories_by_item[$item_id][$term_id] = array(
                     'term_id' => $term_id,
                     'name' => isset($term_link->name) ? $term_link->name : '',
-                    'color' => (string) get_term_meta($term_id, '_sbir_category_color', true),
+                    'color' => $cat_color,
                 );
                 if (!isset($category_counts[$term_id])) {
                     $category_counts[$term_id] = array(
                         'term_id' => $term_id,
                         'name' => isset($term_link->name) ? $term_link->name : '',
-                        'color' => (string) get_term_meta($term_id, '_sbir_category_color', true),
+                        'color' => $cat_color,
                         'count' => 0,
                     );
                 }
@@ -134,8 +148,8 @@ if ($ideas_per_page < 1) {
                         </div>
 
                         <div class="sbir-idea-content">
-                            <?php if (!empty($item_categories)) : ?>
-                                <div class="sbir-idea-categories">
+                            <div class="sbir-idea-categories">
+                                <?php if (!empty($item_categories)) : ?>
                                     <?php foreach ($item_categories as $cat) :
                                         $cat_color = isset($cat['color']) ? (string) $cat['color'] : '';
                                         $cat_attrs = '';
@@ -147,8 +161,10 @@ if ($ideas_per_page < 1) {
                                     ?>
                                         <span class="<?php echo esc_attr($cat_class); ?>"<?php echo $cat_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html(isset($cat['name']) ? $cat['name'] : ''); ?></span>
                                     <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
+                                <?php else : ?>
+                                    <span class="sbir-category sbir-category--uncategorized"><?php esc_html_e('Uncategorized', 'simpleboards-roadmap'); ?></span>
+                                <?php endif; ?>
+                            </div>
                             <div class="sbir-idea-header">
                                 <h3 class="sbir-idea-title">
                                     <a class="sbir-open-drawer" href="<?php echo esc_url($item_permalink); ?>" data-item-id="<?php echo esc_attr($item_id); ?>"><?php echo esc_html($item_title); ?></a>

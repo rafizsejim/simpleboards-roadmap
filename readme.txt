@@ -20,6 +20,9 @@ When you move approved ideas to your roadmap, visitors can track progress withou
 
 You stay in WordPress for everything, so your team has one workflow instead of switching between many tools.
 
+More info, demos, and Pro features: https://simpleboardswp.com
+Support: contact@simpleboardswp.com
+
 = What You Can Do =
 
 * Run a public ideas board so users can tell you what to build next.
@@ -125,7 +128,11 @@ Yes. The board includes built-in styles to reduce theme conflicts and keep your 
 
 = Is there a Pro version? =
 
-Yes. Pro adds private boards, announcements, workflow automations, design controls, checklist progress, and Torin AI.
+Yes. Pro adds private boards, announcements, workflow automations, design controls, checklist progress, and Torin AI. Details: https://simpleboardswp.com
+
+= How do I contact the team? =
+
+Email contact@simpleboardswp.com or visit https://simpleboardswp.com for support, demos, and Pro info.
 
 == Screenshots ==
 

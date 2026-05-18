@@ -51,11 +51,42 @@
             }
             $editor.focus();
             if (action === 'link') {
+                // window.prompt() clears the active selection, so execCommand
+                // would otherwise create the link at the wrong place (or
+                // nothing). Snapshot the range before prompting, restore it
+                // after, and handle the empty-selection case by inserting a
+                // fresh anchor at the caret with the URL as visible text.
+                var sel = window.getSelection ? window.getSelection() : null;
+                var savedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+                var hadSelection = savedRange && !savedRange.collapsed;
                 var url = window.prompt(t('enter_url', 'Enter URL'), 'https://');
                 if (!url) {
                     return;
                 }
-                document.execCommand('createLink', false, url);
+                $editor.focus();
+                if (savedRange && sel) {
+                    sel.removeAllRanges();
+                    sel.addRange(savedRange);
+                }
+                if (hadSelection) {
+                    document.execCommand('createLink', false, url);
+                } else {
+                    var anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.textContent = url;
+                    anchor.target = '_blank';
+                    anchor.rel = 'noopener noreferrer';
+                    if (savedRange) {
+                        savedRange.insertNode(anchor);
+                        // Move caret to the end of the inserted anchor
+                        savedRange.setStartAfter(anchor);
+                        savedRange.collapse(true);
+                        sel.removeAllRanges();
+                        sel.addRange(savedRange);
+                    } else {
+                        $editor[0].appendChild(anchor);
+                    }
+                }
             } else if (action === 'bold') {
                 document.execCommand('bold', false, null);
             } else if (action === 'italic') {

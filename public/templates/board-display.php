@@ -137,7 +137,8 @@ if (!empty($board_container_attrs) && is_array($board_container_attrs)) {
                         aria-selected="<?php echo $active_tab === 'ideas' ? 'true' : 'false'; ?>"
                         aria-controls="<?php echo esc_attr($ideas_pane_id); ?>"
                     >
-                        <?php esc_html_e('Ideas', 'simpleboards-roadmap'); ?>
+                        <span class="sbir-tab-icon" aria-hidden="true"><?php echo sbir_get_svg_icon('lightbulb', array('width' => '15', 'height' => '15')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                        <span class="sbir-tab-label"><?php esc_html_e('Ideas', 'simpleboards-roadmap'); ?></span>
                     </a>
                         <?php
                     } else {
@@ -150,7 +151,8 @@ if (!empty($board_container_attrs) && is_array($board_container_attrs)) {
                         aria-selected="<?php echo $active_tab === 'roadmap' ? 'true' : 'false'; ?>"
                         aria-controls="<?php echo esc_attr($roadmap_pane_id); ?>"
                     >
-                <?php esc_html_e('Roadmap', 'simpleboards-roadmap'); ?>
+                        <span class="sbir-tab-icon" aria-hidden="true"><?php echo sbir_get_svg_icon('columns', array('width' => '15', 'height' => '15')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+                        <span class="sbir-tab-label"><?php esc_html_e('Roadmap', 'simpleboards-roadmap'); ?></span>
                     </a>
                         <?php
                     }
@@ -159,7 +161,10 @@ if (!empty($board_container_attrs) && is_array($board_container_attrs)) {
                 <?php do_action('sbir_render_board_extra_tabs_nav', (int) $board_id, (string) $active_tab, (string) $tabs_uid, (string) $board_url, (string) $view, (bool) $enable_ideas); ?>
             </div>
             <div class="sbir-board-toolbar-controls">
-                <div class="sbir-board-search">
+                <div class="sbir-board-search sbir-search-collapsed" data-collapsed="true">
+                    <button type="button" class="sbir-board-search-toggle" aria-label="<?php esc_attr_e('Search', 'simpleboards-roadmap'); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr($tabs_uid); ?>-search">
+                        <?php echo sbir_get_svg_icon('search', array('width' => '16', 'height' => '16')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </button>
                     <label class="screen-reader-text" for="<?php echo esc_attr($tabs_uid); ?>-search"><?php esc_html_e('Search board items', 'simpleboards-roadmap'); ?></label>
                     <input
                         type="search"

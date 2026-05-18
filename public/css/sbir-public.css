@@ -65,8 +65,15 @@
     width: min(100%, var(--sbir-container-max-width, 1280px));
     max-width: var(--sbir-container-max-width, 1280px);
     margin: 0 auto;
-    padding: var(--sbir-container-padding, 24px);
+    /* Container padding: base from token + extra room for any theme nav
+     * fixed at top of the viewport (set by the top-clearance detector in
+     * sbir-public.js; defaults to 0 when no fixed nav is detected). */
+    padding: calc(var(--sbir-container-padding, 24px) + var(--sbir-top-clearance, 0px)) var(--sbir-container-padding, 24px) var(--sbir-container-padding, 24px);
 }
+/* Anchor jumps + scrollIntoView() should land below any fixed theme nav. */
+html { scroll-padding-top: var(--sbir-top-clearance, 0px); }
+.sbir-board-container,
+#sbir-drawer { scroll-margin-top: var(--sbir-top-clearance, 0px); }
 /* On the single-board minimal template the body itself wraps the container,
  * so paint the body (and the <main> wrapper) with the same background token.
  * Without this the strip outside the container reads as the theme's bg
@@ -889,9 +896,13 @@ body:not(.sbir-inherit-theme) #sbir-drawer .sbir-description-content li {
 }
 /* `.sbir-display-value` defaults to inline-flex (used for status/category
  * meta values). For description content we want it to behave as a block
- * paragraph container, not an inline-flex row. */
-body:not(.sbir-inherit-theme) #sbir-drawer .sbir-description-content {
-    display: block !important;
+ * paragraph container, not an inline-flex row.
+ *
+ * IMPORTANT: do NOT use !important here — the drawer's `.sbir-editing` state
+ * needs to hide this element via display:none. We rely on the doubled-class
+ * selector specificity (0,2,0) to beat .sbir-display-value (0,1,0) instead. */
+.sbir-display-value.sbir-description-content {
+    display: block;
 }
 
 /* -------------------- 4.4 COMPONENT CONTRACTS (buttons) -------------------- */
@@ -1036,19 +1047,32 @@ body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group textarea {
     border: 1px solid var(--sbir-border) !important;
     border-radius: calc(var(--sbir-radius) - 0.125rem) !important;
     color: var(--sbir-foreground) !important;
+    font-size: var(--sbir-body-size, 14px) !important;
 }
 body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input,
 body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group select,
 body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group input,
 body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group select {
-    min-height: 54px !important;
-    padding: 0 14px !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 12px !important;
     line-height: 1.2 !important;
 }
 body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group textarea,
 body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group textarea {
-    min-height: 140px !important;
-    padding: 12px 14px !important;
+    min-height: 96px !important;
+    padding: 10px 12px !important;
+}
+/* Custom caret for selects — `appearance: none` above strips the native one
+ * and themes hide it via `background: #fff`. Paint our own grey chevron so
+ * dropdowns are visibly distinct from text inputs. */
+body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group select,
+body:not(.sbir-inherit-theme) .sbir-idea-modal .sbir-form-group select {
+    padding-right: 34px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px 14px !important;
 }
 body:not(.sbir-inherit-theme) .sbir-roadmap-modal .sbir-form-group input[type="date"] {
     font-variant-numeric: tabular-nums;
@@ -1178,6 +1202,23 @@ body.single-sbir_board .ast-container {
     outline-offset: 2px;
 }
 
+/* Tab icon (renders before the label inside each tab). */
+.sbir-tab .sbir-tab-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 7px;
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+.sbir-tab .sbir-tab-icon svg {
+    display: block;
+    color: currentColor;
+}
+.sbir-tab:hover .sbir-tab-icon,
+.sbir-tab.active .sbir-tab-icon {
+    opacity: 1;
+}
+
 /* Nav style: Minimal — no toolbar container, plain text tabs with a subtle active pill. */
 .sbir-board-container[data-sbirp-nav-style="minimal"] .sbir-board-toolbar {
     background: transparent;
@@ -1265,10 +1306,54 @@ body.single-sbir_board .ast-container {
 }
 
 .sbir-board-search {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    transition: max-width 0.2s ease;
+}
+.sbir-board-search[data-collapsed="true"] {
+    max-width: 42px;
+}
+.sbir-board-search[data-collapsed="false"] {
     flex: 1 1 220px;
     min-width: 220px;
     max-width: 360px;
-    width: 100%;
+}
+/* Search toggle button — visible when collapsed, hidden when expanded.
+ * Height matches the filter selects (42px) so the toolbar reads as one row. */
+.sbir-board-search-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid var(--sbir-card-border, #e5e7eb);
+    border-radius: 10px;
+    background: var(--sbir-surface, #ffffff);
+    color: var(--sbir-muted-foreground, #64748b);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.sbir-board-search-toggle:hover {
+    background: var(--sbir-muted, #f4f7fb);
+    border-color: var(--sbir-card-hover-border, #d6dbe3);
+    color: var(--sbir-foreground, #0f172a);
+}
+.sbir-board-search[data-collapsed="false"] .sbir-board-search-toggle {
+    display: none;
+}
+.sbir-board-search[data-collapsed="true"] .sbir-board-search-input {
+    /* Hide the input visually while keeping it in flow so its width
+     * transition is smooth, plus screen-reader-accessible state. */
+    width: 0 !important;
+    min-width: 0 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    visibility: hidden;
+    height: 0;
+    min-height: 0;
 }
 
 .sbir-board-filters {
@@ -1298,18 +1383,42 @@ body.single-sbir_board .ast-container {
 .sbir-board-search-input {
     width: 100%;
 }
+/* Custom chevron right next to the text — replaces the browser's native
+ * far-right arrow that was creating a big visual gap. Inline SVG via
+ * background-image; appearance:none strips the native styling. */
 .sbir-board-filter-select {
     width: auto;
-    min-width: 160px;
+    min-width: 130px;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    cursor: pointer;
 }
 body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-search-input,
 body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     border: 1px solid var(--sbir-border) !important;
     border-radius: 10px !important;
-    background: var(--sbir-surface) !important;
+    background-color: var(--sbir-surface) !important;
     color: var(--sbir-foreground) !important;
     box-shadow: none !important;
     text-transform: none !important;
+}
+/* The select's custom chevron background-image must NOT be wiped by the
+ * boundary rule above. Re-assert image + repeat + position with !important. */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 12px !important;
+    padding-right: 32px !important;
 }
 .sbir-board-search-input {
     -webkit-appearance: none;
@@ -1488,6 +1597,16 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     border-color: transparent;
     font-weight: 600;
 }
+/* Uncategorized placeholder: subtle dashed outline so it reads as "no
+ * category yet" rather than a real category named "Uncategorized". */
+.sbir-chip.sbir-chip--uncategorized,
+.sbir-category.sbir-category--uncategorized {
+    background: transparent;
+    border: 1px dashed var(--sbir-border);
+    color: var(--sbir-muted-foreground);
+    font-weight: 500;
+    font-style: italic;
+}
 
 .sbir-kanban-header h3 {
     margin: 0;
@@ -1580,37 +1699,69 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
         var(--sbir-card-bg, #ffffff);
 }
 
-/* Bold: filled status-color bar with white-on-color text. */
+/* Bold: soft-tinted card header with a status-color icon badge.
+ * Inspired by modern boards (Linear/Notion-style): card-like header,
+ * 32px filled icon badge on the left, dark title, white count chip,
+ * neutral ghost add button. Replaces the older saturated-bar look. */
 .sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-kanban-header {
-    background: var(--status-color, #94a3b8);
-    border-radius: 10px;
-    padding: 8px 14px;
+    background: rgba(148, 163, 184, 0.08);
+    background: color-mix(in srgb, var(--status-color, #94a3b8) 8%, transparent);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border: 1px solid color-mix(in srgb, var(--status-color, #94a3b8) 18%, transparent);
+    border-radius: 12px;
+    padding: 10px 12px;
     margin-bottom: 12px;
-    min-height: 40px;
-    border: 1px solid transparent;
+    /* Lock height so every column header is identical regardless of which
+     * status icon renders inside the badge (some Lucide paths are heavier
+     * than others — pinning the height prevents any visual size drift). */
+    height: 56px !important;
+    min-height: 56px !important;
+    box-sizing: border-box;
 }
-.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-head-title {
-    color: #ffffff !important;
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-kanban-head-left {
+    gap: 10px;
 }
 .sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-status-dot {
-    background: rgba(255, 255, 255, 0.85);
+    display: none; /* Replaced by the icon badge in bold mode. */
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-column-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--status-color, #94a3b8);
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.10);
+}
+.sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-head-title {
+    color: var(--sbir-foreground, #0f172a) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
 }
 .sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-kanban-head-left .sbir-chip-neutral {
-    background: rgba(255, 255, 255, 0.22);
-    color: #ffffff;
-    border-color: transparent;
+    background: var(--sbir-card-bg, #ffffff);
+    color: var(--sbir-muted-foreground, #64748b);
+    border: 1px solid var(--sbir-card-border, #e5e7eb);
     font-weight: 600;
+    margin-left: auto;
 }
 .sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-add-btn {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.30);
-    color: #ffffff;
+    background: var(--sbir-card-bg, #ffffff);
+    border: 1px solid var(--sbir-card-border, #e5e7eb);
+    color: var(--sbir-muted-foreground, #64748b);
 }
 .sbir-board-container[data-sbirp-header-style="bold"] .sbir-kanban-column .sbir-add-btn:hover {
-    background: rgba(255, 255, 255, 0.28);
-    border-color: rgba(255, 255, 255, 0.45);
-    color: #ffffff;
+    background: var(--sbir-muted, #f4f7fb);
+    border-color: var(--sbir-card-hover-border, #d6dbe3);
+    color: var(--sbir-foreground, #0f172a);
 }
+
+/* Icon badge — only rendered with content in bold mode. Hide elsewhere. */
+.sbir-column-icon-badge { display: none; }
+.sbir-column-icon-badge svg { display: block; }
 
 .sbir-kanban-items {
     display: flex;
@@ -1796,6 +1947,7 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     overflow: hidden;
 }
 .sbir-meta-deadline-inline { display:flex; align-items:center; font-size:12px; color: var(--sbir-deadline-color, #f59e0b); }
+.sbir-meta-deadline-inline.sbir-meta-deadline-inline--released { color: var(--sbir-released-color, #16a34a); }
 .sbir-roadmap .sbir-kanban-item .sbir-task-meta-right .sbir-meta-date { display: none; }
 .sbir-display-value { display: inline-flex; align-items: center; gap: 6px; }
 .sbir-edit-field { display: none; width: 100%; }
@@ -2015,7 +2167,12 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     gap: 1rem;
 }
 
-.sbir-idea-item.sbir-page-hidden {
+.sbir-idea-item.sbir-page-hidden,
+.sbir-idea-item.sbir-filter-hidden,
+.sbir-kanban-item.sbir-filter-hidden,
+.sbir-kanban-column.sbir-filter-hidden,
+.sbir-board-filter.sbir-filter-hidden,
+.sbir-board-sort.sbir-filter-hidden {
     display: none !important;
 }
 
@@ -2532,10 +2689,7 @@ body:not(.sbir-inherit-theme) #sbir-drawer .sbir-drawer-panel {
     padding: 0;
     margin: 0;
 }
-
-.single-sbir_item .comment-list {
-    margin-top: 1rem;
-}
+.single-sbir_item .comment-list { margin-top: 1rem; }
 
 .single-sbir_item .comment {
     border-bottom: 1px solid var(--sbir-border);
@@ -3297,7 +3451,21 @@ body.single-sbir_board .wp-block-post-content{margin-top:0!important;padding-top
 #sbir-drawer .sbir-meta-value .sbir-display-value {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+}
+/* Belt-and-suspenders icon-to-text spacing.
+ *
+ * `gap` on inline-flex containers is unreliable when one of the children is
+ * a raw text node (status name, category name, date text) — some browsers
+ * don't treat anonymous text-node flex items consistently for gap. Use
+ * margin-right on the icon as a guaranteed-visible fallback, and keep the
+ * parent gap as the modern path. */
+#sbir-drawer .sbir-meta-value .sbir-display-value > svg,
+#sbir-drawer .sbir-meta-value .sbir-display-value > .sbir-meta-icon,
+#sbir-drawer .sbir-meta-value .sbir-display-value > .sbir-status-dot {
+    flex: 0 0 auto !important;
+    display: inline-block !important;
+    margin-right: 8px !important;
 }
 
 #sbir-drawer .sbir-meta-muted {
@@ -3379,13 +3547,30 @@ body.single-sbir_board .wp-block-post-content{margin-top:0!important;padding-top
     margin-bottom: 0;
 }
 
+/* Empty-description placeholder: when an item has no body content but the
+ * viewer can edit, show a friendly prompt instead of a thin empty card.
+ * Visitors who can't edit don't see the section at all (handled in PHP). */
+#sbir-drawer .sbir-description-empty .sbir-description-content {
+    padding: 14px 18px;
+    min-height: 56px;
+    display: flex !important;
+    align-items: center;
+    color: var(--sbir-muted-foreground);
+    font-style: italic;
+    font-size: 13px;
+    cursor: pointer;
+}
+#sbir-drawer .sbir-description-placeholder {
+    color: var(--sbir-muted-foreground);
+}
+
 #sbir-drawer .sbir-description-card .sbir-edit-field {
     display: none;
     width: 100%;
     padding: 16px 18px;
     border: 1px solid var(--sbir-border);
     border-radius: 8px;
-    font-size: 15px;
+    font-size: var(--sbir-body-size, 14px);
     line-height: 1.6;
     background: var(--sbir-drawer-surface-bg);
     color: var(--sbir-foreground);
@@ -3414,6 +3599,21 @@ body.single-sbir_board .wp-block-post-content{margin-top:0!important;padding-top
 #sbir-drawer.sbir-editing .sbir-description-card {
     border-color: transparent;
     box-shadow: none;
+}
+
+/* Standalone single-item page (no drawer wrapper, so the .sbir-editing
+ * toggle never fires). When the viewer can edit, only the editable field
+ * should appear; the read-only display sibling would just be clutter.
+ * `:has()` keeps read-only viewers (no edit field rendered) unaffected. */
+body.single-sbir_item .sbir-meta-value:has(.sbir-edit-field) .sbir-display-value,
+body.single-sbir_item .sbir-description-card:has(.sbir-edit-field) .sbir-description-content,
+body.single-sbir_item .sbir-drawer-title:has(.sbir-edit-title) .sbir-display-title {
+    display: none;
+}
+body.single-sbir_item .sbir-meta-panel .sbir-edit-field,
+body.single-sbir_item .sbir-description-card .sbir-edit-field,
+body.single-sbir_item .sbir-drawer-title .sbir-edit-title {
+    display: block;
 }
 
 /* Autosave status indicator */

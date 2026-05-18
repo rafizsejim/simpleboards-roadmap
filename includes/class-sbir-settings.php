@@ -831,7 +831,7 @@ class SBIR_Settings {
 
             $votes = $this->parse_import_votes_from_row($row);
             if ($votes !== null) {
-                $this->upsert_import_vote_count((int) $item_id, (int) $votes);
+                sbir_set_vote_count((int) $item_id, (int) $votes);
             }
 
             $existing_title_keys[$title_key] = (int) $item_id;
@@ -926,7 +926,7 @@ class SBIR_Settings {
 
             $votes = $this->parse_import_votes_from_row($row);
             if ($votes !== null) {
-                $this->upsert_import_vote_count((int) $item_id, (int) $votes);
+                sbir_set_vote_count((int) $item_id, (int) $votes);
             }
 
             $existing_title_keys[$title_key] = (int) $item_id;
@@ -1012,40 +1012,6 @@ class SBIR_Settings {
             return 0;
         }
         return absint($normalized);
-    }
-
-    /**
-     * Upsert vote count for an imported item into vote counts table.
-     *
-     * @param int $item_id    Item ID.
-     * @param int $vote_count Vote count.
-     * @return void
-     */
-    private function upsert_import_vote_count($item_id, $vote_count) {
-        global $wpdb;
-
-        $item_id = absint($item_id);
-        if ($item_id <= 0) {
-            return;
-        }
-        $vote_count = max(0, absint($vote_count));
-
-        $table = $wpdb->prefix . 'sbir_vote_counts';
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        $wpdb->query(
-            $wpdb->prepare(
-                "INSERT INTO `{$table}` (item_id, vote_count) VALUES (%d, %d)
-                 ON DUPLICATE KEY UPDATE vote_count = VALUES(vote_count)",
-                $item_id,
-                $vote_count
-            )
-        );
-
-        if (class_exists('SBIR_Cache_Helper')) {
-            SBIR_Cache_Helper::clear_vote_cache($item_id);
-        } else {
-            wp_cache_delete('vote_count_' . $item_id, 'sbir_plugin');
-        }
     }
 
     /**
