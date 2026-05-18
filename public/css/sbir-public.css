@@ -1094,6 +1094,14 @@ body.single-sbir_board .wp-block-group.alignfull.has-global-padding {
 body.single-sbir_board main#wp--skip-link--target {
     margin-top: 0 !important;
 }
+/* Block themes (Twenty Twenty-Five) render "More posts" / related-content
+ * blocks AFTER the post-content wrapper in single.html. They're siblings
+ * of the outer `.wp-block-group.alignfull.has-global-padding` that wraps
+ * `.wp-block-post-content` — not siblings of the post-content itself.
+ * Hide every sibling that follows so the board page ends cleanly. */
+body.single-sbir_board .wp-block-group.alignfull.has-global-padding ~ * {
+    display: none !important;
+}
 
 /* Board header tabs + search — compact density, no shadow at rest. */
 .sbir-board-toolbar {
@@ -1989,10 +1997,31 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     align-items: start;
 }
 
+/* Theme-resilience guard: force the two-column ideas grid even when a theme
+ * tries to override our display / column tracks / sidebar width via
+ * descendant selectors on .wp-block-post-content, .entry-content, etc. */
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-ideas-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, var(--sbir-ideas-sidebar-width, 380px)) !important;
+    gap: 16px !important;
+    align-items: start !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-ideas-main {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+body:not(.sbir-inherit-theme) .sbir-board-container .sbir-ideas-sidebar {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
 /* Prevent squeezed two-column ideas layout in narrower theme content wrappers. */
 @media (max-width: 1180px) {
-    .sbir-ideas-layout {
-        grid-template-columns: 1fr;
+    .sbir-ideas-layout,
+    body:not(.sbir-inherit-theme) .sbir-board-container .sbir-ideas-layout {
+        grid-template-columns: 1fr !important;
     }
     .sbir-ideas-sidebar {
         position: static;
