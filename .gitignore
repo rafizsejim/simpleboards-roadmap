@@ -7,3 +7,6 @@
   .vscode/                                                  
   .phpunit.result.cache
   CLAUDE.md
+
+CLAUDE.md
+.DS_Store
