@@ -38,8 +38,17 @@ if ($sbir_is_block_theme) :
 <body <?php body_class(); ?>>
 <?php
     wp_body_open();
-    block_template_part('header');
+    /*
+     * `.wp-site-blocks` is the wrapper WP adds when it renders a full
+     * block template (see `get_the_block_template_html()` in core).
+     * Block themes' theme.json style hooks, block-supports CSS, and
+     * spacing tokens are scoped to descendants of this wrapper, so
+     * skipping it makes the site header collapse to default inline
+     * styling instead of the theme's intended layout.
+     */
     ?>
+<div class="wp-site-blocks">
+    <?php block_template_part('header'); ?>
     <main id="sbir-board-main" class="sbir-board-main" role="main">
         <?php
         while (have_posts()) {
@@ -48,10 +57,9 @@ if ($sbir_is_block_theme) :
         }
         ?>
     </main>
-    <?php
-    block_template_part('footer');
-    wp_footer();
-    ?>
+    <?php block_template_part('footer'); ?>
+</div>
+<?php wp_footer(); ?>
 </body>
 </html>
 <?php else :
