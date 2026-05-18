@@ -30,6 +30,73 @@ class SBIR_Post_Types {
 
         // Enforce: ideas (non-roadmap) must not have a status
         add_action('save_post_sbir_item', array($this, 'enforce_status_only_for_roadmap'), 20, 3);
+
+        // Board lifecycle: keep item-to-board references honest and the
+        // boards-dropdown cache fresh. Without this, a trashed/deleted board
+        // can still appear on items (because `get_post()` returns trashed
+        // posts), and a brand-new board can be invisible in admin dropdowns
+        // for up to 5 minutes (the dropdown's cache TTL).
+        add_action('before_delete_post', array($this, 'on_board_deletion'));
+        add_action('save_post_sbir_board', array($this, 'on_board_changed'));
+        add_action('trashed_post', array($this, 'on_board_changed'));
+        add_action('untrashed_post', array($this, 'on_board_changed'));
+    }
+
+    /**
+     * Permanent-deletion cleanup for boards.
+     *
+     * Removes `_sbir_board_id` meta from every item that pointed at this
+     * board. Prevents dangling references silently re-resolving to a new
+     * post if MySQL recycles the auto-increment slot.
+     *
+     * @param int $post_id Post being permanently deleted.
+     * @return void
+     */
+    public function on_board_deletion($post_id) {
+        if (get_post_type($post_id) !== 'sbir_board') {
+            return;
+        }
+        $this->clear_boards_dropdown_cache();
+
+        $item_ids = get_posts(array(
+            'post_type'      => 'sbir_item',
+            'post_status'    => 'any',
+            'numberposts'    => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'meta_query'     => array(
+                array(
+                    'key'     => '_sbir_board_id',
+                    'value'   => (int) $post_id,
+                    'compare' => '=',
+                ),
+            ),
+        ));
+        foreach ((array) $item_ids as $item_id) {
+            delete_post_meta((int) $item_id, '_sbir_board_id');
+        }
+    }
+
+    /**
+     * Invalidate the boards-dropdown cache when a board is created,
+     * updated, trashed, or restored from trash.
+     *
+     * @param int $post_id Post that changed.
+     * @return void
+     */
+    public function on_board_changed($post_id) {
+        if (get_post_type($post_id) !== 'sbir_board') {
+            return;
+        }
+        $this->clear_boards_dropdown_cache();
+    }
+
+    private function clear_boards_dropdown_cache() {
+        if (class_exists('SBIR_Cache_Helper')) {
+            wp_cache_delete('sbir_boards_dropdown', SBIR_Cache_Helper::CACHE_GROUP);
+        } else {
+            wp_cache_delete('sbir_boards_dropdown');
+        }
     }
 
     /**

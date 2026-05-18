@@ -1535,10 +1535,15 @@ class SBIR_Admin {
                 echo '#' . esc_html(sbir_get_item_number($post_id));
                 break;
             case 'board':
-                $board_id = get_post_meta($post_id, '_sbir_board_id', true);
-                if ($board_id) {
+                // Resolve the meta to a board, but only render it when the
+                // target is still a published sbir_board. Otherwise items
+                // can appear "attached" to whatever post happens to live at
+                // that ID after a board has been trashed, deleted, or its
+                // auto-increment slot recycled by MySQL.
+                $board_id = (int) get_post_meta($post_id, '_sbir_board_id', true);
+                if ($board_id > 0) {
                     $board = get_post($board_id);
-                    if ($board) {
+                    if ($board && $board->post_type === 'sbir_board' && $board->post_status === 'publish') {
                         echo '<a href="' . esc_url(get_edit_post_link($board_id)) . '">' . esc_html($board->post_title) . '</a>';
                     }
                 }
