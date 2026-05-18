@@ -770,6 +770,19 @@
                 start: function(event, ui) {
                     ui.placeholder.height(ui.item.outerHeight());
                 },
+                // jQuery UI sets placeholder height once in `start`, but when
+                // the placeholder is reparented into a connected list (i.e.
+                // dragged into a different column) the explicit height is
+                // dropped and it collapses to a thin line. Re-apply on `over`
+                // (entering a list) and `change` (sort order shift) so the
+                // drop-zone box stays visible in every column, not just the
+                // source one.
+                over: function(event, ui) {
+                    ui.placeholder.height(ui.item.outerHeight());
+                },
+                change: function(event, ui) {
+                    ui.placeholder.height(ui.item.outerHeight());
+                },
                 receive: throttle(function(event, ui) {
                     var $item = ui.item;
                     var itemId = $item.data('item-id');

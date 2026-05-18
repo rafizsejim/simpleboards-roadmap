@@ -2287,12 +2287,17 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     margin: 0 0 6px;
 }
 
-/* Placeholder for dragging */
+/* Placeholder for dragging. `min-height` is a safety net for jQuery UI
+ * Sortable reparenting cases where the explicit JS-set height can drop
+ * between frames as the placeholder moves across connected lists — without
+ * it the drop zone briefly collapses to a thin line in non-source columns. */
 .sbir-sortable-placeholder {
     border: 2px dashed var(--sbir-border);
     background: rgba(148, 163, 184, 0.08);
     border-radius: var(--sbir-radius, 12px);
     margin: 0.25rem 0;
+    min-height: 72px;
+    box-sizing: border-box;
 }
 /* Add button — neutral pill, independent of toolbar surface */
 .sbir-add-btn {
