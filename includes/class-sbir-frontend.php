@@ -470,9 +470,18 @@ class SBIR_Frontend {
              * Returning false falls back to the theme's template. Useful for themes
              * that need to control the full page structure themselves.
              *
-             * @param bool $use_custom Default true.
+             * Block themes (Twenty Twenty-Four+, Twenty Twenty-Five, etc.) are
+             * automatically excluded: they already manage header / nav / footer
+             * via their own `templates/single.html`, and our `board_content_filter`
+             * + `render_block` filter pair takes over the post-content slot
+             * + strips leftover entry-meta blocks. Forcing the PHP template
+             * here would strip the theme's Navigation block and require us to
+             * rebuild the page chrome by hand.
+             *
+             * @param bool $use_custom Default true on classic themes, false on block themes.
              */
-            $use_custom = (bool) apply_filters('sbir_use_custom_board_template', true);
+            $default_use_custom = ! (function_exists('wp_is_block_theme') && wp_is_block_theme());
+            $use_custom = (bool) apply_filters('sbir_use_custom_board_template', $default_use_custom);
             if ($use_custom) {
                 $custom_template = SBIR_PLUGIN_DIR . 'public/templates/single-sbir-board.php';
                 if (file_exists($custom_template)) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Minimal single template for `sbir_board`.
+ * Minimal single template for `sbir_board` — CLASSIC THEMES ONLY.
  *
  * Bypasses the theme's entry wrappers (featured image banner, entry-header,
  * entry-meta, author/date/comments, post navigation) so that board pages show
@@ -8,15 +8,14 @@
  *
  * Enabled via the `sbir_use_custom_board_template` filter (default: true).
  *
- * Classic themes: uses `get_header()` / `get_footer()` exactly as before — no
- * behaviour change.
- *
- * Block themes (Twenty Twenty-Four+, Twenty Twenty-Five, etc.): `get_header()`
- * in a block theme has no `header.php` to load and falls back to a minimal
- * stub that does NOT render the block theme's `parts/header.html` (where the
- * Site Title + Navigation blocks live). To restore the site nav on board
- * pages we open the document chrome manually and invoke
- * `block_template_part('header')` / `block_template_part('footer')` directly.
+ * BLOCK THEMES are intentionally NOT routed here. The template override in
+ * `SBIR_Frontend::template_loader()` is gated on `!wp_is_block_theme()`, so
+ * block themes render their own `single.html` / `page.html` exactly as they
+ * do for any other post type. `board_content_filter()` (attached to
+ * `the_content`) already swaps in the board markup at the post-content slot,
+ * and a `render_block` filter strips leftover entry-meta blocks on board
+ * pages — together that gives block themes a header / nav / footer that
+ * matches every other page on the site, with no rebuild needed here.
  *
  * @package SimpleBoards_Roadmap
  */
@@ -25,46 +24,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$sbir_is_block_theme = function_exists('wp_is_block_theme') && wp_is_block_theme() && function_exists('block_template_part');
-
-if ($sbir_is_block_theme) :
-    ?>
-<!DOCTYPE html>
-<html <?php language_attributes(); ?>>
-<head>
-    <meta charset="<?php bloginfo('charset'); ?>">
-    <?php wp_head(); ?>
-</head>
-<body <?php body_class(); ?>>
-<?php
-    wp_body_open();
-    /*
-     * `.wp-site-blocks` is the wrapper WP adds when it renders a full
-     * block template (see `get_the_block_template_html()` in core).
-     * Block themes' theme.json style hooks, block-supports CSS, and
-     * spacing tokens are scoped to descendants of this wrapper, so
-     * skipping it makes the site header collapse to default inline
-     * styling instead of the theme's intended layout.
-     */
-    ?>
-<div class="wp-site-blocks">
-    <?php block_template_part('header'); ?>
-    <main id="sbir-board-main" class="sbir-board-main" role="main">
-        <?php
-        while (have_posts()) {
-            the_post();
-            the_content();
-        }
-        ?>
-    </main>
-    <?php block_template_part('footer'); ?>
-</div>
-<?php wp_footer(); ?>
-</body>
-</html>
-<?php else :
-    get_header();
-    ?>
+get_header();
+?>
 <main id="sbir-board-main" class="sbir-board-main" role="main">
     <?php
     while (have_posts()) {
@@ -79,5 +40,4 @@ if ($sbir_is_block_theme) :
     ?>
 </main>
 <?php
-    get_footer();
-endif;
+get_footer();
