@@ -24,8 +24,11 @@
      */
     function sbirIsNavLike(el) {
         if (!el || el === document.documentElement || el === document.body) return false;
+        // Skip the WP admin bar — body is already offset by `html { margin-top: 32px }`
+        // when it's present, so counting it here would double the gap for logged-in users.
+        if (el.id === 'wpadminbar') return false;
         var style = window.getComputedStyle(el);
-        if (style.position === 'static') return false;
+        if (style.position === 'static' || style.position === 'relative') return false;
         if (style.display === 'none' || style.visibility === 'hidden') return false;
         if (parseFloat(style.opacity) === 0) return false;
         var rect = el.getBoundingClientRect();

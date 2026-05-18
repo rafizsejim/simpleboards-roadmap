@@ -721,6 +721,9 @@ class SBIR_Frontend {
         // Block themes: remove title/meta blocks; template controls title visibility.
         add_filter('render_block_core/post-title', '__return_empty_string');
         add_filter('render_block_core/post-author', '__return_empty_string');
+        add_filter('render_block_core/post-author-name', '__return_empty_string');
+        add_filter('render_block_core/post-author-biography', '__return_empty_string');
+        add_filter('render_block_core/post-author-avatar', '__return_empty_string');
         add_filter('render_block_core/post-date', '__return_empty_string');
         add_filter('render_block_core/post-terms', '__return_empty_string');
         add_filter('render_block_core/post-excerpt', '__return_empty_string');
@@ -741,8 +744,14 @@ class SBIR_Frontend {
             if (!is_singular('sbir_board')) { return $content; }
             if (!is_array($block) || empty($block['blockName'])) { return $content; }
             if ($block['blockName'] === 'core/paragraph') {
+                // Connector / byline fragments left behind by themes after the
+                // author/date/term blocks have been blanked out (Twenty Twenty-Four
+                // uses "— by", others use "Written by", "in", "By", etc.).
+                // Match the trimmed text exactly so legitimate paragraphs that
+                // start with these words are not affected.
                 $text = trim(wp_strip_all_tags($content));
-                if ($text === 'Written by' || $text === 'in') {
+                $junk = array('Written by', 'in', 'By', 'by', '— by', 'by —', '—', 'Posted on');
+                if (in_array($text, $junk, true)) {
                     return '';
                 }
             }

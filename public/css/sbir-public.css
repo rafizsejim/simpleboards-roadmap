@@ -215,7 +215,22 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-card-title-wrap .sbir-
     flex: 1 1 auto;
     min-width: 0;
 }
-/* -------------------- 3.4 BOUNDARY RESET (container width) -------------------- */
+/* -------------------- 3.4 BOUNDARY RESET (container width) --------------------
+ * On single-board pages the board breaks out of whatever content column the
+ * theme provides and uses its configured Board Template Width (default 1280px).
+ * Symmetric negative-or-positive margins keep it centered in the viewport, so
+ * theme wrappers (.ast-container, .wp-site-blocks, etc.) are NEVER touched —
+ * nav menus and headers stay byte-identical to every other page.
+ *
+ * Shortcode/widget usage (not a single-board page) keeps the safer
+ * "fit parent, cap at configured width" behavior below. */
+body.single-sbir_board:not(.sbir-inherit-theme) .sbir-board-container {
+    width: min(100vw, var(--sbir-container-max-width, 1280px)) !important;
+    max-width: var(--sbir-container-max-width, 1280px) !important;
+    margin-left: calc((100% - min(100vw, var(--sbir-container-max-width, 1280px))) / 2) !important;
+    margin-right: calc((100% - min(100vw, var(--sbir-container-max-width, 1280px))) / 2) !important;
+    box-sizing: border-box !important;
+}
 body:not(.sbir-inherit-theme) .entry-content > .sbir-board-container,
 body:not(.sbir-inherit-theme) .wp-block-post-content > .sbir-board-container {
     width: 100% !important;
@@ -240,55 +255,7 @@ body.single-sbir_board:not(.sbir-inherit-theme) .sbir-board-main {
     padding: 0 !important;
     background: transparent !important;
 }
-body.single-sbir_board:not(.sbir-inherit-theme) main#sbir-board-main > .sbir-board-container {
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
 
-/* -------------------- 3.5 BOUNDARY RESET (theme wrappers) -------------------- */
-/*
- * Neutralizes narrow content wrappers so the board fills the page width.
- * Covers: Neve (.nv-*), Astra (.ast-container), Kadence (.content-container,
- * .content-wrap, .entry-content-wrap, .site-container), OceanWP/GeneratePress
- * (#primary, #content, .site-content, .content-area), Twenty Twenty-*
- * (.wp-site-blocks, .is-layout-constrained), and common shared wrappers.
- */
-body.single-sbir_board:not(.sbir-inherit-theme) .nv-content-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .nv-single-post-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .site-content,
-body.single-sbir_board:not(.sbir-inherit-theme) .content-area,
-body.single-sbir_board:not(.sbir-inherit-theme) .site-main,
-body.single-sbir_board:not(.sbir-inherit-theme) #primary,
-body.single-sbir_board:not(.sbir-inherit-theme) #content,
-body.single-sbir_board:not(.sbir-inherit-theme) #page,
-body.single-sbir_board:not(.sbir-inherit-theme) .site,
-body.single-sbir_board:not(.sbir-inherit-theme) .hfeed.site,
-body.single-sbir_board:not(.sbir-inherit-theme) .ast-container,
-body.single-sbir_board:not(.sbir-inherit-theme) .ast-row,
-body.single-sbir_board:not(.sbir-inherit-theme) .content-container,
-body.single-sbir_board:not(.sbir-inherit-theme) .content-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .entry-content-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .site-container,
-body.single-sbir_board:not(.sbir-inherit-theme) .page-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .inside-article,
-body.single-sbir_board:not(.sbir-inherit-theme) .wp-site-blocks,
-body.single-sbir_board:not(.sbir-inherit-theme) .is-layout-constrained,
-body.single-sbir_board:not(.sbir-inherit-theme) .is-layout-flow {
-    max-width: none !important;
-    width: 100% !important;
-}
-
-/*
- * Also reset common restrictive paddings that shrink usable width on narrow
- * theme wrappers. Keep the page body flow natural — only apply to direct
- * board ancestors, not the board container itself.
- */
-body.single-sbir_board:not(.sbir-inherit-theme) .content-container,
-body.single-sbir_board:not(.sbir-inherit-theme) .content-wrap,
-body.single-sbir_board:not(.sbir-inherit-theme) .entry-content-wrap {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-}
 body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-toolbar,
 body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-toolbar-controls,
 body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filters,
@@ -1115,11 +1082,17 @@ body.single-sbir_board .entry-content {
     max-width: none !important;
 }
 
-/* Astra theme: remove container width/padding on board pages */
-body.single-sbir_board .ast-container {
-    max-width: none !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+/* Block themes (Twenty Twenty-Five): the post-content is wrapped in a
+ * `.wp-block-group.alignfull.has-global-padding` with inline
+ * `style="padding-top: var(--wp--preset--spacing--60)"` and rendered inside
+ * `<main id="wp--skip-link--target">` with inline `margin-top: var(...)`.
+ * Both inline styles need `!important` to override. Only `-top` is zeroed —
+ * bottom spacing is left intact so the footer doesn't crash into the board. */
+body.single-sbir_board .wp-block-group.alignfull.has-global-padding {
+    padding-top: 0 !important;
+}
+body.single-sbir_board main#wp--skip-link--target {
+    margin-top: 0 !important;
 }
 
 /* Board header tabs + search — compact density, no shadow at rest. */
@@ -2994,7 +2967,11 @@ body:not(.sbir-inherit-theme) .sbir-comment-form-card .sbir-comment-consent labe
 }
 
 /* Trim theme wrappers on single board pages */
-body.single-sbir_board .has-global-padding{padding-top:0!important;padding-bottom:0!important;margin-top:0!important;margin-bottom:0!important}
+/* Scope global-padding zeroing to the post-content wrapper only so the body /
+ * main / nav containers (which also receive `.has-global-padding` in block
+ * themes) keep their padding and the nav layout is preserved. */
+body.single-sbir_board .wp-block-post-content.has-global-padding,
+body.single-sbir_board .entry-content.has-global-padding{padding-top:0!important;padding-bottom:0!important;margin-top:0!important;margin-bottom:0!important}
 body.single-sbir_board .wp-block-group.alignfull{margin-top:0!important}
 body.single-sbir_board .wp-block-post-content{margin-top:0!important;padding-top:0!important}
 
