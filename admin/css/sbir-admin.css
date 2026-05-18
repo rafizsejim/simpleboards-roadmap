@@ -238,7 +238,7 @@
  * + content-box on a table makes the cells render flush against the
  * border anyway). Putting horizontal padding on TH/TD is the reliable
  * way to push label + input content away from the card edges. */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form{
     background: var(--sbir-set-bg);
     border: 1px solid var(--sbir-set-border);
     border-radius: var(--sbir-set-radius);
@@ -249,13 +249,13 @@
     overflow: hidden;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table tr {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) formtr {
     border-bottom: 1px solid var(--sbir-set-divider);
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table tr:last-child {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) formtr:last-child {
     border-bottom: 0;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table th {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) formth {
     padding: 22px 16px 22px 28px;
     width: 220px;
     font-size: 13px;
@@ -265,34 +265,34 @@
     vertical-align: top;
     text-align: left;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table td {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) formtd {
     padding: 22px 28px 22px 0;
     color: var(--sbir-set-foreground);
     vertical-align: top;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table .description,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table p.description {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form.description,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) formp.description {
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.5;
     color: var(--sbir-set-muted);
 }
 /* Inline help that follows a label */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form label {
     font-size: 13px;
     color: var(--sbir-set-foreground);
     line-height: 1.5;
 }
 
 /* Modern input controls */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="text"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="email"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="url"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="number"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="password"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="search"],
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table select,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="text"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="email"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="url"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="number"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="password"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="search"],
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form select,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form textarea {
     border: 1px solid #d1d5db;
     border-radius: var(--sbir-set-input-radius);
     padding: 8px 12px;
@@ -305,14 +305,14 @@
     min-height: 36px;
     box-sizing: border-box;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="text"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="email"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="url"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="number"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="password"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="search"]:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table select:focus,
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea:focus {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="text"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="email"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="url"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="number"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="password"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="search"]:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form select:focus,
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form textarea:focus {
     border-color: var(--sbir-set-primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     outline: none;
@@ -320,7 +320,7 @@
 /* Selects: strip the OS-native chrome (which WP/themes sometimes hide via
  * `background: #fff`) and paint our own caret so dropdowns are visibly
  * distinct from text inputs. */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table select {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -330,7 +330,7 @@
     background-position: right 12px center;
     background-size: 14px 14px;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table textarea {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form textarea {
     min-height: 96px;
     line-height: 1.5;
     font-family: inherit;
@@ -345,7 +345,7 @@
  * { content: url(...) }`. Without overriding `content` AND
  * `background-image` on every state, the WP checkmark renders INSIDE
  * our knob and produces a "donut" appearance. */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"] {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"] {
     appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
@@ -369,7 +369,7 @@
     color: transparent !important;
     font-size: 0 !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]::before {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]::before {
     content: '' !important;
     position: absolute !important;
     top: 2px !important;
@@ -389,37 +389,37 @@
     mask: none !important;
     clip-path: none !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]::after {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]::after {
     /* Some WP versions draw the checkmark via ::after instead of ::before.
      * Suppress it entirely. */
     content: none !important;
     display: none !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:hover {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:hover {
     background: #b8c0cd !important;
     background-color: #b8c0cd !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:checked {
     background: var(--sbir-set-primary) !important;
     background-image: none !important;
     background-color: var(--sbir-set-primary) !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked:hover {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:checked:hover {
     background: var(--sbir-set-primary-hover) !important;
     background-color: var(--sbir-set-primary-hover) !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked::before {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:checked::before {
     /* Critical: re-declare content:'' so WP's checkmark URL doesn't render. */
     content: '' !important;
     background: #ffffff !important;
     background-image: none !important;
     transform: translateX(14px) !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:checked::after {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:checked::after {
     content: none !important;
     display: none !important;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table input[type="checkbox"]:focus-visible {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form input[type="checkbox"]:focus-visible {
     outline: none !important;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.28) !important;
 }
@@ -427,12 +427,12 @@
  * Block-level flex so each <label> owns its own row inside the <td>;
  * inline-flex caused source-whitespace between sibling labels to render
  * as a leading space, nudging the second toggle to the right. */
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form label {
     display: flex;
     align-items: center;
     gap: 10px;
 }
-:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form .form-table label > input[type="checkbox"] {
+:is(.sbir-settings-page, .sbir-add-board-page, .sbir-add-item-page) form label > input[type="checkbox"] {
     margin-right: 0;
 }
 
