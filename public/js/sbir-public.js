@@ -1487,6 +1487,20 @@
             sbirOpenDrawer($card.attr('href'), itemId, $card);
         });
 
+        // Open drawer for the entire ideas card. Skip clicks that originate
+        // on a link, button, vote area, or any form control — those keep
+        // their own behaviour (the title link is handled by the
+        // .sbir-open-drawer handler above; vote buttons handle voting).
+        $(document).on('click', '.sbir-idea-item', function(e){
+            if ($(e.target).closest('a, button, input, select, textarea, .sbir-vote-btn, .sbir-idea-vote').length) return;
+            var $card = $(this);
+            var $titleLink = $card.find('.sbir-open-drawer').first();
+            if (!$titleLink.length) return;
+            e.preventDefault();
+            var itemId = $card.data('item-id') || $titleLink.data('item-id') || null;
+            sbirOpenDrawer($titleLink.attr('href'), itemId, $titleLink);
+        });
+
         // Discussion/comment handlers are loaded from sbir-public-comments.js.
 
         // Keyboard accessibility: Esc closes modal/drawer, Tab traps focus.

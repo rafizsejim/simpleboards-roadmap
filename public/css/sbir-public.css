@@ -2272,6 +2272,7 @@ body:not(.sbir-inherit-theme) .sbir-board-container .sbir-board-filter-select {
     border-radius: var(--sbir-radius);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-shadow: var(--sbir-shadow, none);
+    cursor: pointer; /* Whole card is clickable; JS opens the drawer for blank-area clicks */
 }
 
 .sbir-idea-item:hover {
