@@ -1248,22 +1248,26 @@ body.single-sbir_board .ast-container {
     font-weight: 600;
 }
 
-/* Nav style: Underline — no fill, active gets a crisp bottom indicator. */
+/* Nav style: Underline — GitHub/Linear-style tab strip with a shared
+ * bottom border. Each tab sits flush against the border; the active tab's
+ * indicator overlaps the border so it reads as one connected component
+ * instead of a floating decoration. Tabs are wider than before so the
+ * indicator has visual weight even for short labels like "Ideas". */
 .sbir-board-container[data-sbirp-nav-style="underline"] .sbir-board-toolbar {
     background: transparent;
     border: 0;
     border-bottom: 1px solid var(--sbir-border);
     box-shadow: none;
-    padding: 0 0 0;
+    padding: 0;
     margin-bottom: 16px;
     border-radius: 0;
 }
-.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tabs { gap: 4px; }
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tabs { gap: 0; }
 .sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab {
     position: relative;
-    min-height: 40px;
-    padding: 10px 4px;
-    margin: 0 8px;
+    min-height: 44px;
+    padding: 12px 18px;
+    margin: 0;
     border-radius: 0;
     border: 0;
     background: transparent;
@@ -1287,8 +1291,13 @@ body.single-sbir_board .ast-container {
     bottom: -1px;
     height: 2px;
     background: transparent;
-    border-radius: 2px 2px 0 0;
     transition: background-color 0.15s ease;
+}
+/* Subtle hover preview of the indicator — same color as the strip's
+ * bottom border so it reads as "this tab is hoverable" without competing
+ * with the active state. */
+.sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab:hover::after {
+    background: var(--sbir-border);
 }
 .sbir-board-container[data-sbirp-nav-style="underline"] .sbir-tab.active::after {
     background: var(--sbir-primary);
