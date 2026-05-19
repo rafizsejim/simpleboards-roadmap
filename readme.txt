@@ -3,7 +3,7 @@ Contributors: rafizsejim
 Tags: roadmap, feedback, feature requests, voting, ideas board
 Requires at least: 5.0
 Tested up to: 6.9.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -172,9 +172,12 @@ Email contact@simpleboardswp.com or open a thread in the plugin's wordpress.org 
 
 == Changelog ==
 
-= 1.0.1 =
+= 1.0.2 =
 
 * Free install: "Workflow Automations" and "Design" tabs no longer appear on the board setup screen unless the Pro add-on is active (previously rendered as empty tabs).
+
+= 1.0.1 =
+
 * Theme compatibility: board now forces its configured width without modifying theme wrappers, so nav menus on Astra and other classic themes render identically to every other page.
 * Twenty Twenty-Five fixes: removed the top gap above the board and hid the unrelated "More posts" section on board pages.
 * Twenty Twenty-Four: stripped the leftover "— by" byline that was leaking from the theme's post-author block.
