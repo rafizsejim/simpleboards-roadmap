@@ -174,6 +174,7 @@ Email contact@simpleboardswp.com or open a thread in the plugin's wordpress.org 
 
 = 1.0.1 =
 
+* Free install: "Workflow Automations" and "Design" tabs no longer appear on the board setup screen unless the Pro add-on is active (previously rendered as empty tabs).
 * Theme compatibility: board now forces its configured width without modifying theme wrappers, so nav menus on Astra and other classic themes render identically to every other page.
 * Twenty Twenty-Five fixes: removed the top gap above the board and hid the unrelated "More posts" section on board pages.
 * Twenty Twenty-Four: stripped the leftover "— by" byline that was leaking from the theme's post-author block.

@@ -26,9 +26,17 @@ class SBIR_Admin {
     private function get_board_setup_tabs($board_id, $is_edit) {
         $tabs = array(
             'general' => __('General', 'simpleboards-roadmap'),
-            'workflow-automations' => __('Workflow Automations', 'simpleboards-roadmap'),
-            'design' => __('Design', 'simpleboards-roadmap'),
         );
+
+        // Pro modules hook their own renderers into the actions below. Only
+        // surface those tabs in the UI when a renderer is actually registered,
+        // otherwise free-only installs see empty tab panels.
+        if (has_action('sbir_render_board_workflow_tab_content')) {
+            $tabs['workflow-automations'] = __('Workflow Automations', 'simpleboards-roadmap');
+        }
+        if (has_action('sbir_render_board_design_tab_content')) {
+            $tabs['design'] = __('Design', 'simpleboards-roadmap');
+        }
 
         $tabs = apply_filters('sbir_board_setup_tabs', $tabs, (int) $board_id, (bool) $is_edit);
         if (!is_array($tabs) || empty($tabs)) {
@@ -444,18 +452,18 @@ class SBIR_Admin {
                         </table>
                     </div>
 
-                    <div class="sbir-board-tab-panel <?php echo $active_setup_tab === 'workflow-automations' ? 'active' : ''; ?>" data-tab-panel="workflow-automations">
-                        <?php do_action('sbir_render_board_workflow_tab_content', $board_id, $is_edit); ?>
-                        <?php do_action('sbir_after_board_general_settings_section', $board_id, $is_edit); ?>
-                    </div>
+                    <?php if (has_action('sbir_render_board_workflow_tab_content')) : ?>
+                        <div class="sbir-board-tab-panel <?php echo $active_setup_tab === 'workflow-automations' ? 'active' : ''; ?>" data-tab-panel="workflow-automations">
+                            <?php do_action('sbir_render_board_workflow_tab_content', $board_id, $is_edit); ?>
+                            <?php do_action('sbir_after_board_general_settings_section', $board_id, $is_edit); ?>
+                        </div>
+                    <?php endif; ?>
 
-                    <div class="sbir-board-tab-panel <?php echo $active_setup_tab === 'design' ? 'active' : ''; ?>" data-tab-panel="design">
-                        <?php if (!has_action('sbir_render_board_design_tab_content')) : ?>
-                            <h2><?php esc_html_e('Design', 'simpleboards-roadmap'); ?></h2>
-                            <p class="description"><?php esc_html_e('Design settings will be available here in the next update.', 'simpleboards-roadmap'); ?></p>
-                        <?php endif; ?>
-                        <?php do_action('sbir_render_board_design_tab_content', $board_id, $is_edit); ?>
-                    </div>
+                    <?php if (has_action('sbir_render_board_design_tab_content')) : ?>
+                        <div class="sbir-board-tab-panel <?php echo $active_setup_tab === 'design' ? 'active' : ''; ?>" data-tab-panel="design">
+                            <?php do_action('sbir_render_board_design_tab_content', $board_id, $is_edit); ?>
+                        </div>
+                    <?php endif; ?>
                     <?php
                     $reserved_tabs = array('general', 'workflow-automations', 'design');
                     foreach ($setup_tabs as $tab_key => $tab_label) :
