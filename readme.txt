@@ -3,7 +3,7 @@ Contributors: rafizsejim
 Tags: roadmap, feedback, feature requests, voting, ideas board
 Requires at least: 5.0
 Tested up to: 6.9.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -172,10 +172,13 @@ Email contact@simpleboardswp.com or open a thread in the plugin's wordpress.org 
 
 == Changelog ==
 
+= 1.0.3 =
+
+* Settings screen: tabs now switch instantly with no page reload, and a single Save Changes button at the bottom commits every tab at once. Unsaved edits in one tab are no longer lost when clicking another tab.
+
 = 1.0.2 =
 
 * Free install: "Workflow Automations" and "Design" tabs no longer appear on the board setup screen unless the Pro add-on is active (previously rendered as empty tabs).
-* Settings screen: tabs now switch instantly with no page reload, and a single Save Changes button at the bottom commits every tab at once. Unsaved edits in one tab are no longer lost when clicking another tab.
 
 = 1.0.1 =
 
