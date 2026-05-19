@@ -464,3 +464,15 @@
     border-color: var(--sbir-set-primary-hover);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
+/* Settings page: single-form, JS-switched tab panels. Only the active panel
+ * is visible; sibling panels stay in the DOM (with values intact) so users
+ * can switch between tabs without losing unsaved edits. */
+.sbir-settings-page .sbir-settings-tab-panel {
+    display: none;
+}
+.sbir-settings-page .sbir-settings-tab-panel.is-active {
+    display: block;
+}
+.sbir-settings-page .sbir-settings-form.is-hidden {
+    display: none;
+}

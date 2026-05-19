@@ -17,6 +17,88 @@ class SBIR_Settings {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('updated_option', array($this, 'maybe_flush_rewrite_rules'), 10, 3);
         add_action('admin_post_sbir_import_loopedin', array($this, 'handle_import_loopedin'));
+        add_action('admin_post_sbir_save_settings', array($this, 'handle_save_settings'));
+    }
+
+    /**
+     * Unified save handler for the Settings page.
+     *
+     * Settings tabs all share one form on the admin screen so the user can
+     * switch tabs without losing edits and save everything with one click
+     * (mirroring how the per-board settings screen works).
+     *
+     * The four option groups (`sbir_general_settings`, `sbir_submission_settings`,
+     * `sbir_comment_settings`, `sbir_notification_settings`) registered via
+     * `register_setting()` are enumerated from WordPress's `$new_allowed_options`
+     * registry so the list stays in sync as new fields are added — including
+     * the dynamically registered notification toggles from
+     * `sbir_get_notification_config()`. Each option's sanitize callback fires
+     * automatically through the `sanitize_option_{name}` filter that
+     * `register_setting()` installs.
+     *
+     * @return void
+     */
+    public function handle_save_settings() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You are not allowed to manage these settings.', 'simpleboards-roadmap'), '', 403);
+        }
+        check_admin_referer('sbir_save_settings');
+
+        global $new_allowed_options, $allowed_options;
+        $registered = !empty($new_allowed_options) ? $new_allowed_options : (array) $allowed_options;
+        $groups = array(
+            'sbir_general_settings',
+            'sbir_submission_settings',
+            'sbir_comment_settings',
+            'sbir_notification_settings',
+        );
+        $option_names = array();
+        foreach ($groups as $group) {
+            if (!empty($registered[$group]) && is_array($registered[$group])) {
+                $option_names = array_merge($option_names, $registered[$group]);
+            }
+        }
+        $option_names = array_values(array_unique($option_names));
+
+        // Unchecked checkboxes don't appear in $_POST, so explicitly default
+        // these to 'no' when missing — otherwise the previous value sticks.
+        $yes_no_options = array(
+            'sbir_inherit_theme_styles',
+            'sbir_enable_guest_submissions',
+            'sbir_moderate_submissions',
+            'sbir_comments_enabled',
+            'sbir_comments_allow_guests',
+            'sbir_email_new_submission',
+            'sbir_email_rejected',
+            'sbir_subscriptions_enabled',
+        );
+        if (function_exists('sbir_get_notification_config')) {
+            foreach (sbir_get_notification_config() as $entry) {
+                if (!empty($entry['option_toggle'])) {
+                    $yes_no_options[] = $entry['option_toggle'];
+                }
+            }
+        }
+        $yes_no_options = array_values(array_unique($yes_no_options));
+
+        foreach ($option_names as $opt) {
+            if (array_key_exists($opt, $_POST)) {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitize_option_{$opt} filter (registered via register_setting) runs inside update_option().
+                update_option($opt, wp_unslash($_POST[$opt]));
+            } elseif (in_array($opt, $yes_no_options, true)) {
+                update_option($opt, 'no');
+            }
+        }
+
+        $redirect_args = array(
+            'page' => 'sbir-settings',
+            'settings-updated' => 'true',
+        );
+        if (!empty($_POST['_sbir_active_tab'])) {
+            $redirect_args['tab'] = sanitize_key(wp_unslash($_POST['_sbir_active_tab']));
+        }
+        wp_safe_redirect(add_query_arg($redirect_args, admin_url('admin.php')));
+        exit;
     }
     
     /**
@@ -175,39 +257,69 @@ class SBIR_Settings {
      */
     public static function render_settings_page() {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
+        $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'general';
+        $allowed_tabs = array('general', 'submissions', 'comments', 'notifications', 'import');
+        if (!in_array($active_tab, $allowed_tabs, true)) {
+            $active_tab = 'general';
+        }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $saved_notice = !empty($_GET['settings-updated']);
+        $form_tabs = array('general', 'submissions', 'comments', 'notifications');
+        $is_form_tab = in_array($active_tab, $form_tabs, true);
         ?>
-        <div class="wrap sbir-settings-page">
+        <div class="wrap sbir-settings-page" data-sbir-active-tab="<?php echo esc_attr($active_tab); ?>">
             <h1 class="sbir-settings-title"><?php esc_html_e('SimpleBoards Settings', 'simpleboards-roadmap'); ?></h1>
 
+            <?php if ($saved_notice) : ?>
+                <div class="notice notice-success is-dismissible">
+                    <p><?php esc_html_e('Settings saved.', 'simpleboards-roadmap'); ?></p>
+                </div>
+            <?php endif; ?>
+
             <h2 class="nav-tab-wrapper sbir-settings-nav">
-                <a href="?page=sbir-settings&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('General', 'simpleboards-roadmap'); ?>
-                </a>
-                <a href="?page=sbir-settings&tab=submissions" class="nav-tab <?php echo $active_tab === 'submissions' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Submissions', 'simpleboards-roadmap'); ?>
-                </a>
-                <a href="?page=sbir-settings&tab=comments" class="nav-tab <?php echo $active_tab === 'comments' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Comments', 'simpleboards-roadmap'); ?>
-                </a>
-                <a href="?page=sbir-settings&tab=notifications" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Notifications', 'simpleboards-roadmap'); ?>
-                </a>
-                <a href="?page=sbir-settings&tab=import" class="nav-tab <?php echo $active_tab === 'import' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Import', 'simpleboards-roadmap'); ?>
-                </a>
+                <?php
+                $tab_labels = array(
+                    'general' => __('General', 'simpleboards-roadmap'),
+                    'submissions' => __('Submissions', 'simpleboards-roadmap'),
+                    'comments' => __('Comments', 'simpleboards-roadmap'),
+                    'notifications' => __('Notifications', 'simpleboards-roadmap'),
+                    'import' => __('Import', 'simpleboards-roadmap'),
+                );
+                foreach ($tab_labels as $tab_key => $tab_label) :
+                    $tab_href = add_query_arg(array('page' => 'sbir-settings', 'tab' => $tab_key), admin_url('admin.php'));
+                    ?>
+                    <a href="<?php echo esc_url($tab_href); ?>" class="nav-tab <?php echo $active_tab === $tab_key ? 'nav-tab-active' : ''; ?>" data-sbir-tab="<?php echo esc_attr($tab_key); ?>">
+                        <?php echo esc_html($tab_label); ?>
+                    </a>
+                <?php endforeach; ?>
             </h2>
-            
-            <?php if ($active_tab === 'general') : ?>
-                <form method="post" action="options.php">
-                    <?php settings_fields('sbir_general_settings'); ?>
+
+            <?php
+            /*
+             * Single unified form for the four option-driven tabs (general,
+             * submissions, comments, notifications). All panels render in the
+             * DOM simultaneously; JS toggles `is-active` so switching tabs
+             * never reloads the page and unsaved edits persist across tabs.
+             * The Save Changes button at the bottom commits every panel in
+             * one custom admin-post handler.
+             *
+             * The Import tab is a separate UI (file upload, no options),
+             * rendered outside this form.
+             */
+            ?>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="sbir-settings-form" class="sbir-settings-form<?php echo $is_form_tab ? '' : ' is-hidden'; ?>">
+                <input type="hidden" name="action" value="sbir_save_settings">
+                <input type="hidden" name="_sbir_active_tab" id="sbir-active-tab-field" value="<?php echo esc_attr($is_form_tab ? $active_tab : 'general'); ?>">
+                <?php wp_nonce_field('sbir_save_settings'); ?>
+
+                <div class="sbir-settings-tab-panel<?php echo $active_tab === 'general' ? ' is-active' : ''; ?>" data-sbir-panel="general">
                     <table class="form-table">
                         <tr>
                             <th scope="row">
                                 <label for="sbir_permalink_base"><?php esc_html_e('Permalink Base', 'simpleboards-roadmap'); ?></label>
                             </th>
                             <td>
-                                <input type="text" id="sbir_permalink_base" name="sbir_permalink_base" 
+                                <input type="text" id="sbir_permalink_base" name="sbir_permalink_base"
                                        value="<?php echo esc_attr(get_option('sbir_permalink_base', 'products')); ?>" class="regular-text">
                                 <p class="description">
                                     <?php esc_html_e('The base slug for board URLs. Default is "products".', 'simpleboards-roadmap'); ?>
@@ -223,26 +335,17 @@ class SBIR_Settings {
                                 </label>
                             </td>
                         </tr>
-                        <?php
-                        /**
-                         * Fires inside the General settings table so add-ons can
-                         * inject extra rows (e.g. Pro AI toggle).
-                         */
-                        do_action('sbir_general_settings_after_fields');
-                        ?>
+                        <?php do_action('sbir_general_settings_after_fields'); ?>
                     </table>
-                    <?php submit_button(); ?>
-                </form>
-            
-            <?php elseif ($active_tab === 'submissions') : ?>
-                <form method="post" action="options.php">
-                    <?php settings_fields('sbir_submission_settings'); ?>
+                </div>
+
+                <div class="sbir-settings-tab-panel<?php echo $active_tab === 'submissions' ? ' is-active' : ''; ?>" data-sbir-panel="submissions">
                     <table class="form-table">
                         <tr>
                             <th scope="row"><?php esc_html_e('Guest Submissions', 'simpleboards-roadmap'); ?></th>
                             <td>
                                 <label>
-                                    <input type="checkbox" name="sbir_enable_guest_submissions" value="yes" 
+                                    <input type="checkbox" name="sbir_enable_guest_submissions" value="yes"
                                            <?php checked(get_option('sbir_enable_guest_submissions', 'yes'), 'yes'); ?>>
                                     <?php esc_html_e('Allow guest users to submit ideas', 'simpleboards-roadmap'); ?>
                                 </label>
@@ -252,7 +355,7 @@ class SBIR_Settings {
                             <th scope="row"><?php esc_html_e('Moderation', 'simpleboards-roadmap'); ?></th>
                             <td>
                                 <label>
-                                    <input type="checkbox" name="sbir_moderate_submissions" value="yes" 
+                                    <input type="checkbox" name="sbir_moderate_submissions" value="yes"
                                            <?php checked(get_option('sbir_moderate_submissions', 'yes'), 'yes'); ?>>
                                     <?php esc_html_e('Require admin approval for new submissions', 'simpleboards-roadmap'); ?>
                                 </label>
@@ -263,8 +366,8 @@ class SBIR_Settings {
                                 <label for="sbir_submission_form_title"><?php esc_html_e('Form Title', 'simpleboards-roadmap'); ?></label>
                             </th>
                             <td>
-                                <input type="text" id="sbir_submission_form_title" name="sbir_submission_form_title" 
-                                       value="<?php echo esc_attr(get_option('sbir_submission_form_title', __('Submit Your Idea', 'simpleboards-roadmap'))); ?>" 
+                                <input type="text" id="sbir_submission_form_title" name="sbir_submission_form_title"
+                                       value="<?php echo esc_attr(get_option('sbir_submission_form_title', __('Submit Your Idea', 'simpleboards-roadmap'))); ?>"
                                        class="regular-text">
                             </td>
                         </tr>
@@ -273,7 +376,7 @@ class SBIR_Settings {
                                 <label for="sbir_submission_form_description"><?php esc_html_e('Form Description', 'simpleboards-roadmap'); ?></label>
                             </th>
                             <td>
-                                <textarea id="sbir_submission_form_description" name="sbir_submission_form_description" 
+                                <textarea id="sbir_submission_form_description" name="sbir_submission_form_description"
                                           rows="3" class="large-text"><?php echo esc_textarea(get_option('sbir_submission_form_description', '')); ?></textarea>
                             </td>
                         </tr>
@@ -289,12 +392,9 @@ class SBIR_Settings {
                             </td>
                         </tr>
                     </table>
-                    <?php submit_button(); ?>
-                </form>
-            
-            <?php elseif ($active_tab === 'comments') : ?>
-                <form method="post" action="options.php">
-                    <?php settings_fields('sbir_comment_settings'); ?>
+                </div>
+
+                <div class="sbir-settings-tab-panel<?php echo $active_tab === 'comments' ? ' is-active' : ''; ?>" data-sbir-panel="comments">
                     <table class="form-table">
                         <tr>
                             <th scope="row"><?php esc_html_e('Comments', 'simpleboards-roadmap'); ?></th>
@@ -323,17 +423,53 @@ class SBIR_Settings {
                             </td>
                         </tr>
                     </table>
-                    <?php submit_button(); ?>
-                </form>
+                </div>
 
-            <?php elseif ($active_tab === 'notifications') : ?>
-                <?php self::render_notifications_tab(); ?>
+                <div class="sbir-settings-tab-panel<?php echo $active_tab === 'notifications' ? ' is-active' : ''; ?>" data-sbir-panel="notifications">
+                    <?php self::render_notifications_tab(); ?>
+                </div>
 
-            <?php elseif ($active_tab === 'import') : ?>
+                <?php submit_button(__('Save Changes', 'simpleboards-roadmap')); ?>
+            </form>
+
+            <div class="sbir-settings-tab-panel<?php echo $active_tab === 'import' ? ' is-active' : ''; ?>" data-sbir-panel="import">
                 <?php self::render_import_tab(); ?>
-
-            <?php endif; ?>
+            </div>
         </div>
+        <script>
+            (function(){
+                var page = document.querySelector('.sbir-settings-page');
+                if (!page) { return; }
+                var tabs = page.querySelectorAll('.sbir-settings-nav [data-sbir-tab]');
+                var panels = page.querySelectorAll('[data-sbir-panel]');
+                var form = page.querySelector('#sbir-settings-form');
+                var activeField = page.querySelector('#sbir-active-tab-field');
+                var formTabs = <?php echo wp_json_encode($form_tabs); ?>;
+
+                function activate(tabKey, href) {
+                    for (var i = 0; i < tabs.length; i++) {
+                        tabs[i].classList.toggle('nav-tab-active', tabs[i].getAttribute('data-sbir-tab') === tabKey);
+                    }
+                    for (var j = 0; j < panels.length; j++) {
+                        panels[j].classList.toggle('is-active', panels[j].getAttribute('data-sbir-panel') === tabKey);
+                    }
+                    var isFormTab = formTabs.indexOf(tabKey) !== -1;
+                    if (form) { form.classList.toggle('is-hidden', !isFormTab); }
+                    if (activeField && isFormTab) { activeField.value = tabKey; }
+                    page.setAttribute('data-sbir-active-tab', tabKey);
+                    if (href && window.history && window.history.replaceState) {
+                        window.history.replaceState({}, '', href);
+                    }
+                }
+
+                for (var k = 0; k < tabs.length; k++) {
+                    tabs[k].addEventListener('click', function(e){
+                        e.preventDefault();
+                        activate(this.getAttribute('data-sbir-tab'), this.getAttribute('href'));
+                    });
+                }
+            }());
+        </script>
         <?php
     }
 
@@ -512,8 +648,7 @@ class SBIR_Settings {
             $groups[$audience]['types'][$type_key] = $entry;
         }
         ?>
-        <form method="post" action="options.php" class="sbir-notifications-form">
-            <?php settings_fields('sbir_notification_settings'); ?>
+        <div class="sbir-notifications-form">
 
             <h2><?php esc_html_e('Recipients & Subscriptions', 'simpleboards-roadmap'); ?></h2>
             <table class="form-table">
@@ -604,8 +739,7 @@ class SBIR_Settings {
                 <code>{votes}</code>, <code>{threshold}</code>, <code>{category}</code>, <code>{days_overdue}</code>, <code>{required_days}</code>, <code>{status_name}</code>
             </p>
 
-            <?php submit_button(); ?>
-        </form>
+        </div>
         <?php
     }
 
