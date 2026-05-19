@@ -3,7 +3,7 @@
  * Plugin Name: SimpleBoards - Ideas and Roadmap Solution
  * Plugin URI: https://simpleboardswp.com
  * Description: A simple yet powerful roadmap and ideas management solution for WordPress. Collect user feedback, manage product roadmaps, and prioritize features.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Rafiz Sejim
  * Author URI: https://simpleboardswp.com
  * License: GPL v2 or later
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SBIR_VERSION', '1.0.0');
+define('SBIR_VERSION', '1.0.1');
 define('SBIR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SBIR_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('SBIR_PLUGIN_BASENAME', plugin_basename(__FILE__));

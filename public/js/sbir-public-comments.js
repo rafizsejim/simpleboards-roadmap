@@ -105,6 +105,41 @@
             $btn.prop('disabled', !has).toggleClass('is-disabled', !has).toggleClass('is-active', has);
         }
 
+        function showCommentSubmittedNotice($drawer) {
+            // Drawer refresh wipes the DOM, so we can't inject the notice
+            // synchronously after submit. Poll briefly for the rebuilt form
+            // and then prepend a dismissible banner. The message is generic
+            // enough to cover both auto-published comments (banner is a
+            // friendly "thanks") and held-for-moderation comments (banner
+            // explains why the post didn't appear in the list).
+            var attempts = 0;
+            var iv = setInterval(function() {
+                attempts++;
+                var $form = $drawer.find('.sbir-comment-form-card').first();
+                if ($form.length) {
+                    clearInterval(iv);
+                    if ($form.find('.sbir-comment-submitted-notice').length) {
+                        return;
+                    }
+                    var msg = t('comment_submitted_notice', 'Your comment was submitted. It may need approval before appearing.');
+                    var $notice = $(
+                        '<div class="sbir-comment-submitted-notice" role="status" aria-live="polite">' +
+                            '<span class="sbir-comment-submitted-text"></span>' +
+                            '<button type="button" class="sbir-comment-submitted-dismiss" aria-label="' + t('dismiss', 'Dismiss') + '">&times;</button>' +
+                        '</div>'
+                    );
+                    $notice.find('.sbir-comment-submitted-text').text(msg);
+                    $form.prepend($notice);
+                } else if (attempts > 25) {
+                    clearInterval(iv);
+                }
+            }, 100);
+        }
+
+        $(document).on('click', '.sbir-comment-submitted-dismiss', function() {
+            $(this).closest('.sbir-comment-submitted-notice').remove();
+        });
+
         // Keep comment submission inside drawer: AJAX post then reload drawer content.
         $(document).on('submit', '#sbir-drawer form.sbir-comment-form', function(e) {
             if ($(this).hasClass('sbir-reply-form')) {
@@ -123,6 +158,7 @@
             $.post($form.attr('action') || window.location.href, data)
                 .always(function() {
                     refreshDrawerContent($drawer);
+                    showCommentSubmittedNotice($drawer);
                 });
         });
 

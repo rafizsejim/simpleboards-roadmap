@@ -4408,11 +4408,49 @@ body.flavor #sbir-drawer .comment-respond {
 }
 
 #sbir-drawer .sbir-inline-edit .sbir-comment-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-top: 8px;
     padding: 6px 10px;
     background: var(--sbir-comment-toolbar-bg);
     border-top: 1px solid var(--sbir-drawer-divider-color);
     border-radius: 6px;
+}
+
+/* Confirmation banner shown after a comment is submitted. Stays until the
+ * user dismisses it — moderated comments don't appear in the list, so an
+ * auto-fading notice would leave guests wondering what happened. */
+.sbir-comment-submitted-notice {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    color: #065f46;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.sbir-comment-submitted-text {
+    flex: 1 1 auto;
+}
+.sbir-comment-submitted-dismiss {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.7;
+}
+.sbir-comment-submitted-dismiss:hover {
+    opacity: 1;
 }
 
 /* No comments message */

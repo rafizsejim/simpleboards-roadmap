@@ -2,13 +2,13 @@
 Contributors: rafizsejim
 Tags: roadmap, feedback, feature requests, voting, ideas board
 Requires at least: 5.0
-Tested up to: 6.8
-Stable tag: 1.0.0
+Tested up to: 6.9.4
+Stable tag: 1.0.1
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Public roadmap, ideas board, and feature voting plugin for WordPress. Collect customer feedback, prioritize by votes, ship product updates users can see.
+Public roadmap, ideas board, & feature voting plugin for WordPress. Collect customer feedback, prioritize by votes, ship product updates users can see
 
 == Description ==
 
@@ -155,16 +155,33 @@ Email contact@simpleboardswp.com or open a thread in the plugin's wordpress.org 
 
 == Screenshots ==
 
-1. Public roadmap board with kanban status columns and vote counts on every card.
-2. Ideas board with voting, threaded comments, filter, and sort controls.
-3. Drawer view for full item details, discussion, and per-item subscription.
-4. Board settings for display, moderation, comments, and per-board controls.
-5. CSV import screen for LoopedIn migration with vote-count preservation.
-6. Pro design controls for layout, colors, typography, and vote button styling.
-7. Pro announcements tab on the public board and the announcements widget.
-8. Pro workflow automation rules and Torin AI duplicate detection.
+1. Public roadmap board with kanban columns showing planned, in progress, and shipped work.
+2. Theme picker lets you match the board's style to your site without writing CSS.
+3. Built-in dark mode for the public roadmap and ideas board.
+4. Ideas board with voting, top voted sidebar, and submit-an-idea button.
+5. Simple submission form that lets guests submit ideas without an account.
+6. Roadmap item drawer with checklist tasks so users see how close a feature is to shipping.
+7. Workflow automation rules that promote ideas and notify your team on status changes.
+8. Full design controls for board layout, columns, typography, and spacing.
+9. Per-board customization for column headers, card backgrounds, borders, and text colors.
+10. Torin AI top ideas tab ranks every idea by votes and comments.
+11. Torin AI duplicate detection finds overlapping ideas so you can merge them.
+12. Announcements tab for posting release notes on the public board.
+13. CSV importer for LoopedIn ideas, roadmap items, and vote counts.
+14. Notification email editor for submissions, status changes, and rejections.
 
 == Changelog ==
+
+= 1.0.1 =
+
+* Theme compatibility: board now forces its configured width without modifying theme wrappers, so nav menus on Astra and other classic themes render identically to every other page.
+* Twenty Twenty-Five fixes: removed the top gap above the board and hid the unrelated "More posts" section on board pages.
+* Twenty Twenty-Four: stripped the leftover "— by" byline that was leaking from the theme's post-author block.
+* Ideas sidebar: layout is now shielded from block-theme styling so it stays at the configured width on every theme.
+* Top-clearance detector ignores normal-flow theme headers and the WordPress admin bar; logged-in and logged-out users see identical top spacing.
+* Comment edit toolbar: Cancel and Save buttons now sit inline with the formatting buttons instead of stacking below.
+* Comment submission shows a dismissible confirmation banner so guests know their comment was received (and may need approval).
+* Added 6 more screenshots to the plugin gallery.
 
 = 1.0.0 =
 

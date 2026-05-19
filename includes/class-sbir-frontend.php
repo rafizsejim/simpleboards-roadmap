@@ -431,6 +431,8 @@ class SBIR_Frontend {
                     'underline' => __('Underline', 'simpleboards-roadmap'),
                     'link' => __('Link', 'simpleboards-roadmap'),
                     'enter_url' => __('Enter URL', 'simpleboards-roadmap'),
+                    'dismiss' => __('Dismiss', 'simpleboards-roadmap'),
+                    'comment_submitted_notice' => __('Your comment was submitted. It may need approval before appearing.', 'simpleboards-roadmap'),
                     'no_search_matches' => __('No matching items found.', 'simpleboards-roadmap'),
                     'search_ideas_placeholder' => __('Search ideas...', 'simpleboards-roadmap'),
                     'search_roadmap_placeholder' => __('Search roadmap items...', 'simpleboards-roadmap'),
